@@ -20,12 +20,16 @@ import VideoStreamComponent from '../components/VideoStream';
 import ActionButtons from '../components/ActionButtons';
 import SensorPanel from '../components/SensorPanel';
 import BottomNavigation from '../components/BottomNavigation';
+import SidebarNavbar from '../components/SidebarNavbar';
+import NotificationsModal from '../components/NotificationsModal';
 
 const HomeScreen: React.FC = () => {
   // State yönetimi
   const [currentTab, setCurrentTab] = useState<'home' | 'history' | 'settings'>('home');
   const [isMicrophoneActive, setIsMicrophoneActive] = useState(false);
   const [isDoorUnlocked, setIsDoorUnlocked] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
   
   // Mock veriler
   const [sensorData, setSensorData] = useState<SensorData>(getMockSensorData());
@@ -44,11 +48,24 @@ const HomeScreen: React.FC = () => {
 
   // Event handlers
   const handleMenuPress = () => {
-    console.log('Menu pressed');
+    setIsSidebarVisible(true);
   };
 
   const handleNotificationPress = () => {
-    console.log('Notification pressed');
+    setIsNotificationsVisible(true);
+  };
+
+  const handleSidebarClose = () => {
+    setIsSidebarVisible(false);
+  };
+
+  const handleNotificationsClose = () => {
+    setIsNotificationsVisible(false);
+  };
+
+  const handleMenuItemPress = (menuItem: string) => {
+    console.log('Menu item pressed:', menuItem);
+    // Burada farklı menü öğelerine göre navigasyon yapılabilir
   };
 
   const handleSpeakPress = () => {
@@ -111,6 +128,19 @@ const HomeScreen: React.FC = () => {
       <BottomNavigation
         currentTab={currentTab}
         onTabPress={handleTabPress}
+      />
+
+      {/* Sidebar Navbar */}
+      <SidebarNavbar
+        isVisible={isSidebarVisible}
+        onClose={handleSidebarClose}
+        onMenuItemPress={handleMenuItemPress}
+      />
+
+      {/* Notifications Modal */}
+      <NotificationsModal
+        isVisible={isNotificationsVisible}
+        onClose={handleNotificationsClose}
       />
     </View>
   );
