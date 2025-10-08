@@ -6,10 +6,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { Colors } from '../constants/theme';
+import { Colors, Typography, Spacing } from '../constants/theme';
 import { SensorData, DoorCall, VideoStream } from '../types';
 import { getMockSensorData, getMockDoorCall, getMockVideoStream } from '../utils/mockData';
 
@@ -22,6 +23,8 @@ import SensorPanel from '../components/SensorPanel';
 import BottomNavigation from '../components/BottomNavigation';
 import SidebarNavbar from '../components/SidebarNavbar';
 import NotificationsModal from '../components/NotificationsModal';
+import SettingsScreen from './SettingsScreen';
+import HistoryScreen from './HistoryScreen';
 
 const HomeScreen: React.FC = () => {
   // State yönetimi
@@ -87,61 +90,80 @@ const HomeScreen: React.FC = () => {
     console.log('Tab pressed:', tab);
   };
 
+  // Ekran render fonksiyonu
+  const renderCurrentScreen = () => {
+    switch (currentTab) {
+      case 'settings':
+        return <SettingsScreen onTabChange={handleTabPress} />;
+      case 'history':
+        return <HistoryScreen onTabChange={handleTabPress} />;
+      default:
+        return (
+          <>
+            {/* Header */}
+            <Header
+              onMenuPress={handleMenuPress}
+              onNotificationPress={handleNotificationPress}
+            />
+
+            <ScrollView
+              style={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+            >
+              {/* Gelen Çağrı Banner */}
+              <IncomingCallBanner
+                caller={doorCall.caller}
+                isVisible={doorCall.isActive}
+              />
+
+              {/* Video Stream */}
+              <VideoStreamComponent
+                stream={videoStream}
+                onPress={handleVideoPress}
+              />
+
+              {/* Etkileşim Butonları */}
+              <ActionButtons
+                onSpeakPress={handleSpeakPress}
+                onUnlockPress={handleUnlockPress}
+                isMicrophoneActive={isMicrophoneActive}
+                isDoorUnlocked={isDoorUnlocked}
+              />
+
+              {/* Sensör Paneli */}
+              <SensorPanel sensorData={sensorData} />
+            </ScrollView>
+
+            {/* Sidebar Navbar */}
+            <SidebarNavbar
+              isVisible={isSidebarVisible}
+              onClose={handleSidebarClose}
+              onMenuItemPress={handleMenuItemPress}
+            />
+
+            {/* Notifications Modal */}
+            <NotificationsModal
+              isVisible={isNotificationsVisible}
+              onClose={handleNotificationsClose}
+            />
+          </>
+        );
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <Header
-        onMenuPress={handleMenuPress}
-        onNotificationPress={handleNotificationPress}
-      />
+      {/* Mevcut Ekran */}
+      {renderCurrentScreen()}
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Gelen Çağrı Banner */}
-        <IncomingCallBanner
-          caller={doorCall.caller}
-          isVisible={doorCall.isActive}
+      {/* Alt Navigasyon - sadece home ekranında göster */}
+      {currentTab === 'home' && (
+        <BottomNavigation
+          currentTab={currentTab}
+          onTabPress={handleTabPress}
         />
-
-        {/* Video Stream */}
-        <VideoStreamComponent
-          stream={videoStream}
-          onPress={handleVideoPress}
-        />
-
-        {/* Etkileşim Butonları */}
-        <ActionButtons
-          onSpeakPress={handleSpeakPress}
-          onUnlockPress={handleUnlockPress}
-          isMicrophoneActive={isMicrophoneActive}
-          isDoorUnlocked={isDoorUnlocked}
-        />
-
-        {/* Sensör Paneli */}
-        <SensorPanel sensorData={sensorData} />
-      </ScrollView>
-
-      {/* Alt Navigasyon */}
-      <BottomNavigation
-        currentTab={currentTab}
-        onTabPress={handleTabPress}
-      />
-
-      {/* Sidebar Navbar */}
-      <SidebarNavbar
-        isVisible={isSidebarVisible}
-        onClose={handleSidebarClose}
-        onMenuItemPress={handleMenuItemPress}
-      />
-
-      {/* Notifications Modal */}
-      <NotificationsModal
-        isVisible={isNotificationsVisible}
-        onClose={handleNotificationsClose}
-      />
+      )}
     </View>
   );
 };
@@ -156,6 +178,22 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20,
+  },
+  placeholderScreen: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
+  placeholderText: {
+    fontSize: Typography['2xl'],
+    fontWeight: Typography.semibold,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  placeholderSubtext: {
+    fontSize: Typography.base,
+    color: Colors.textSecondary,
   },
 });
 
