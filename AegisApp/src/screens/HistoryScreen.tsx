@@ -1,5 +1,5 @@
 /**
- * Sentinel App - History Sayfası
+ * AegisApp - History Sayfası
  * Geçmiş kayıtları ve olayları görüntüleme
  */
 
@@ -150,6 +150,7 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ onTabChange }) => {
     />
   );
 
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -158,69 +159,72 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ onTabChange }) => {
         <Text style={styles.headerSubtitle}>Tüm olaylar ve kayıtlar</Text>
       </View>
 
-      {/* Arama Çubuğu */}
-      <SearchBar
-        value={searchText}
-        onChangeText={setSearchText}
-        placeholder="Olayları ara..."
-      />
+      {/* İçerik Alanı */}
+      <View style={styles.contentContainer}>
+        {/* Arama Çubuğu */}
+        <SearchBar
+          value={searchText}
+          onChangeText={setSearchText}
+          placeholder="Olayları ara..."
+        />
 
-      {/* Filtre Butonları */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterContainer}
-        contentContainerStyle={styles.filterContent}
-      >
-        <FilterButton
-          title="Tümü"
-          isActive={activeFilter === 'all'}
-          onPress={() => handleFilterPress('all')}
-          icon="📋"
-        />
-        <FilterButton
-          title="Kapı"
-          isActive={activeFilter === 'door'}
-          onPress={() => handleFilterPress('door')}
-          icon="🚪"
-        />
-        <FilterButton
-          title="Hareket"
-          isActive={activeFilter === 'motion'}
-          onPress={() => handleFilterPress('motion')}
-          icon="🚶"
-        />
-        <FilterButton
-          title="Yangın"
-          isActive={activeFilter === 'fire'}
-          onPress={() => handleFilterPress('fire')}
-          icon="🔥"
-        />
-        <FilterButton
-          title="Sensör"
-          isActive={activeFilter === 'sensor'}
-          onPress={() => handleFilterPress('sensor')}
-          icon="🌡️"
-        />
-      </ScrollView>
+        {/* Filtre Butonları */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filterContainer}
+          contentContainerStyle={styles.filterContent}
+        >
+          <FilterButton
+            title="Tümü"
+            isActive={activeFilter === 'all'}
+            onPress={() => handleFilterPress('all')}
+            icon="📋"
+          />
+          <FilterButton
+            title="Kapı"
+            isActive={activeFilter === 'door'}
+            onPress={() => handleFilterPress('door')}
+            icon="🚪"
+          />
+          <FilterButton
+            title="Hareket"
+            isActive={activeFilter === 'motion'}
+            onPress={() => handleFilterPress('motion')}
+            icon="🚶"
+          />
+          <FilterButton
+            title="Yangın"
+            isActive={activeFilter === 'fire'}
+            onPress={() => handleFilterPress('fire')}
+            icon="🔥"
+          />
+          <FilterButton
+            title="Sensör"
+            isActive={activeFilter === 'sensor'}
+            onPress={() => handleFilterPress('sensor')}
+            icon="🌡️"
+          />
+        </ScrollView>
 
-      {/* Geçmiş Listesi */}
-      {filteredData.length > 0 ? (
-        <FlatList
-          data={filteredData}
-          renderItem={renderHistoryItem}
-          keyExtractor={(item) => item.id}
-          style={styles.historyList}
-          contentContainerStyle={styles.historyContent}
-          showsVerticalScrollIndicator={false}
-        />
-      ) : (
-        <EmptyState
-          title="Kayıt Bulunamadı"
-          description="Seçilen filtreye uygun kayıt bulunamadı. Farklı bir filtre deneyin."
-          icon="📭"
-        />
-      )}
+        {/* Geçmiş Listesi */}
+        {filteredData.length > 0 ? (
+          <FlatList
+            data={filteredData}
+            renderItem={renderHistoryItem}
+            keyExtractor={(item) => item.id}
+            style={styles.historyList}
+            contentContainerStyle={styles.historyContent}
+            showsVerticalScrollIndicator={false}
+          />
+        ) : (
+          <EmptyState
+            title="Kayıt Bulunamadı"
+            description="Seçilen filtreye uygun kayıt bulunamadı. Farklı bir filtre deneyin."
+            icon="📭"
+          />
+        )}
+      </View>
 
       {/* Alt Navigasyon */}
       <BottomNavigation
@@ -253,20 +257,29 @@ const styles = StyleSheet.create({
     fontSize: Typography.base,
     color: Colors.textSecondary,
   },
+  contentContainer: {
+    flex: 1,
+  },
   filterContainer: {
     marginBottom: Spacing.sm,
     paddingVertical: Spacing.xs,
+
+ 
+   
   },
   filterContent: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
+
   },
   historyList: {
     height: 550,
+    
   },
   historyContent: {
     paddingTop: Spacing.xs,
     paddingBottom: 20,
+
   },
 });
 
