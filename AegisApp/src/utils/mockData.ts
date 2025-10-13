@@ -2,7 +2,7 @@
  * AegisApp - Mock Veri Servisi
  */
 
-import { SensorData, VideoStream, DoorCall, AirQualityStatus } from '../types';
+import { SensorData, VideoStream, DoorCall, AirQualityStatus, User } from '../types';
 
 // Sensör verileri
 export const getMockSensorData = (): SensorData => ({
@@ -63,5 +63,73 @@ export const getAirQualityText = (status: AirQualityStatus): string => {
       return 'TEHLİKELİ (KIRMIZI)';
     default:
       return 'NORMAL';
+  }
+};
+
+// Mock kullanıcı verileri
+export const mockUsers: User[] = [
+  {
+    id: '1',
+    email: 'admin@aegis.com',
+    username: 'admin',
+    deviceNumber: 'AEGIS-001',
+    name: 'Sistem Yöneticisi',
+    role: 'admin',
+  },
+  {
+    id: '2',
+    email: 'user@aegis.com',
+    username: 'user',
+    deviceNumber: 'AEGIS-002',
+    name: 'Güvenlik Operatörü',
+    role: 'user',
+  },
+  {
+    id: '3',
+    email: 'test@aegis.com',
+    username: 'test',
+    deviceNumber: 'AEGIS-003',
+    name: 'Test Kullanıcısı',
+    role: 'user',
+  },
+];
+
+// Mock authentication fonksiyonları
+export const mockLogin = async (emailOrUsername: string, password: string, deviceNumber: string): Promise<{ success: boolean; user?: User; error?: string }> => {
+  // Simüle edilmiş network delay
+  await new Promise<void>(resolve => setTimeout(() => resolve(), 1000));
+  
+  // Mock validation
+  const user = mockUsers.find(u => 
+    (u.email === emailOrUsername || u.username === emailOrUsername) &&
+    u.deviceNumber === deviceNumber &&
+    password === 'password123' // Tüm mock kullanıcılar aynı şifreyi kullanıyor
+  );
+  
+  if (user) {
+    return { success: true, user };
+  } else {
+    return { success: false, error: 'Geçersiz kullanıcı adı, şifre veya cihaz numarası' };
+  }
+};
+
+export const mockForgotPassword = async (emailOrUsername: string): Promise<{ success: boolean; message?: string; error?: string }> => {
+  // Simüle edilmiş network delay
+  await new Promise<void>(resolve => setTimeout(() => resolve(), 800));
+  
+  const user = mockUsers.find(u => 
+    u.email === emailOrUsername || u.username === emailOrUsername
+  );
+  
+  if (user) {
+    return { 
+      success: true, 
+      message: `Şifre sıfırlama bağlantısı ${user.email} adresine gönderildi.` 
+    };
+  } else {
+    return { 
+      success: false, 
+      error: 'Bu e-posta adresi veya kullanıcı adı sistemde kayıtlı değil.' 
+    };
   }
 };

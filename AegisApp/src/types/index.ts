@@ -34,3 +34,25 @@ export interface NavigationTab {
   title: string;
   icon: string;
 }
+
+// Login/Authentication Types
+export interface LoginCredentials {
+  emailOrUsername: string;
+  password: string;
+  deviceNumber: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  deviceNumber: string;
+  name: string;
+  role: 'admin' | 'user';
+}
+
+export interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  rememberMe: boolean;
+}
