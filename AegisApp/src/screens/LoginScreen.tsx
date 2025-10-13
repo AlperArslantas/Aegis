@@ -3,7 +3,7 @@
  * Kullanıcı kimlik doğrulama arayüzü
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Animated,
+  Easing,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
 import { LoginCredentials, User } from '../types';
 import { mockLogin, mockForgotPassword } from '../utils/mockData';
@@ -34,10 +37,147 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Validation state
+  const [errors, setErrors] = useState<{
+    emailOrUsername?: string;
+    password?: string;
+    deviceNumber?: string;
+  }>({});
+
+  // Animation refs
+  const logoPulseAnim = useRef(new Animated.Value(1)).current;
+  const logoGlowAnim = useRef(new Animated.Value(0.5)).current;
+  const inputFocusAnim = useRef({
+    emailOrUsername: new Animated.Value(0),
+    password: new Animated.Value(0),
+    deviceNumber: new Animated.Value(0),
+  }).current;
+  const successAnim = useRef(new Animated.Value(0)).current;
+  const buttonScaleAnim = useRef(new Animated.Value(1)).current;
+
+  // Animation functions
+  useEffect(() => {
+    // Logo pulse animation
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(logoPulseAnim, {
+          toValue: 1.1,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(logoPulseAnim, {
+          toValue: 1,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    // Logo glow animation
+    const glowAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(logoGlowAnim, {
+          toValue: 1.0,
+          duration: 3000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }),
+        Animated.timing(logoGlowAnim, {
+          toValue: 0.5,
+          duration: 3000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }),
+      ])
+    );
+
+    pulseAnimation.start();
+    glowAnimation.start();
+
+    return () => {
+      pulseAnimation.stop();
+      glowAnimation.stop();
+    };
+  }, []);
+
+  // Validation function
+  const validateField = (field: keyof LoginCredentials, value: string) => {
+    const newErrors = { ...errors };
+    
+    switch (field) {
+      case 'emailOrUsername':
+        if (!value.trim()) {
+          newErrors.emailOrUsername = 'E-posta veya kullanıcı adı gereklidir';
+        } else {
+          delete newErrors.emailOrUsername;
+        }
+        break;
+      case 'password':
+        if (!value.trim()) {
+          newErrors.password = 'Şifre gereklidir';
+        } else if (value.length < 6) {
+          newErrors.password = 'Şifre en az 6 karakter olmalıdır';
+        } else {
+          delete newErrors.password;
+        }
+        break;
+      case 'deviceNumber':
+        if (!value.trim()) {
+          newErrors.deviceNumber = 'Cihaz numarası gereklidir';
+        } else if (!value.match(/^AEGIS-\d{3}$/)) {
+          newErrors.deviceNumber = 'Cihaz numarası AEGIS-XXX formatında olmalıdır';
+        } else {
+          delete newErrors.deviceNumber;
+        }
+        break;
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Input handlers
   const handleInputChange = (field: keyof LoginCredentials, value: string) => {
     setCredentials(prev => ({ ...prev, [field]: value }));
+    validateField(field, value);
+  };
+
+  const handleInputFocus = (field: keyof LoginCredentials) => {
+    Animated.timing(inputFocusAnim[field], {
+      toValue: 1,
+      duration: 200,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const handleInputBlur = (field: keyof LoginCredentials) => {
+    Animated.timing(inputFocusAnim[field], {
+      toValue: 0,
+      duration: 200,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const handleButtonPressIn = () => {
+    Animated.timing(buttonScaleAnim, {
+      toValue: 0.95,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleButtonPressOut = () => {
+    Animated.timing(buttonScaleAnim, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
   };
 
   // Login handler
@@ -66,7 +206,19 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       );
 
       if (result.success && result.user) {
-        onLoginSuccess(result.user, rememberMe);
+        // Success animation
+        setShowSuccess(true);
+        Animated.timing(successAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: true,
+        }).start();
+
+        // Delay before navigation
+        setTimeout(() => {
+          onLoginSuccess(result.user!, rememberMe);
+        }, 1500);
       } else {
         Alert.alert('Giriş Hatası', result.error || 'Bilinmeyen bir hata oluştu');
       }
@@ -98,18 +250,43 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <LinearGradient
+      colors={['#1E293B', '#0F172A', '#000000']}
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
     >
-      <ScrollView 
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView 
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         {/* Logo/Header */}
         <View style={styles.headerContainer}>
-          <Text style={styles.logo}>AEGIS</Text>
+          <Animated.View
+            style={[
+              styles.logoPulseWrapper,
+              {
+                transform: [{ scale: logoPulseAnim }],
+              },
+            ]}
+          >
+            <Animated.View
+              style={[
+                styles.logoGlowWrapper,
+                {
+                  shadowOpacity: logoGlowAnim,
+                  shadowColor: '#3B82F6', // Daha parlak mavi glow
+                },
+              ]}
+            >
+              <Text style={styles.logo}>AEGIS</Text>
+            </Animated.View>
+          </Animated.View>
           <Text style={styles.subtitle}>Güvenlik Sistemi</Text>
           <Text style={styles.welcomeText}>Hoş Geldiniz</Text>
         </View>
@@ -119,27 +296,64 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           {/* Email/Username Input */}
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>E-posta / Kullanıcı Adı</Text>
-            <TextInput
-              style={styles.textInput}
-              value={credentials.emailOrUsername}
-              onChangeText={(text) => handleInputChange('emailOrUsername', text)}
-              placeholder="admin@aegis.com veya admin"
-              placeholderTextColor={Colors.textMuted}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              editable={!isLoading}
-            />
+            <Animated.View
+              style={[
+                styles.inputWrapper,
+                {
+                  borderColor: inputFocusAnim.emailOrUsername.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [Colors.secondary, Colors.primary],
+                  }),
+                  shadowOpacity: inputFocusAnim.emailOrUsername.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 0.3],
+                  }),
+                },
+              ]}
+            >
+              <TextInput
+                style={styles.textInput}
+                value={credentials.emailOrUsername}
+                onChangeText={(text) => handleInputChange('emailOrUsername', text)}
+                onFocus={() => handleInputFocus('emailOrUsername')}
+                onBlur={() => handleInputBlur('emailOrUsername')}
+                placeholder="admin@aegis.com veya admin"
+                placeholderTextColor={Colors.textMuted}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                editable={!isLoading}
+              />
+            </Animated.View>
+            {errors.emailOrUsername && (
+              <Text style={styles.errorText}>{errors.emailOrUsername}</Text>
+            )}
           </View>
 
           {/* Password Input */}
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Şifre</Text>
-            <View style={styles.passwordContainer}>
+            <Animated.View
+              style={[
+                styles.passwordWrapper,
+                {
+                  borderColor: inputFocusAnim.password.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [Colors.secondary, Colors.primary],
+                  }),
+                  shadowOpacity: inputFocusAnim.password.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 0.3],
+                  }),
+                },
+              ]}
+            >
               <TextInput
                 style={styles.passwordInput}
                 value={credentials.password}
                 onChangeText={(text) => handleInputChange('password', text)}
+                onFocus={() => handleInputFocus('password')}
+                onBlur={() => handleInputBlur('password')}
                 placeholder="password123"
                 placeholderTextColor={Colors.textMuted}
                 secureTextEntry={!showPassword}
@@ -156,22 +370,46 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   {showPassword ? '🙈' : '👁️'}
                 </Text>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
+            {errors.password && (
+              <Text style={styles.errorText}>{errors.password}</Text>
+            )}
           </View>
 
           {/* Device Number Input */}
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Cihaz Numarası</Text>
-            <TextInput
-              style={styles.textInput}
-              value={credentials.deviceNumber}
-              onChangeText={(text) => handleInputChange('deviceNumber', text)}
-              placeholder="AEGIS-001"
-              placeholderTextColor={Colors.textMuted}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              editable={!isLoading}
-            />
+            <Animated.View
+              style={[
+                styles.inputWrapper,
+                {
+                  borderColor: inputFocusAnim.deviceNumber.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [Colors.secondary, Colors.primary],
+                  }),
+                  shadowOpacity: inputFocusAnim.deviceNumber.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 0.3],
+                  }),
+                },
+              ]}
+            >
+              <TextInput
+                style={styles.textInput}
+                value={credentials.deviceNumber}
+                onChangeText={(text) => handleInputChange('deviceNumber', text)}
+                onFocus={() => handleInputFocus('deviceNumber')}
+                onBlur={() => handleInputBlur('deviceNumber')}
+                placeholder="AEGIS-001"
+                placeholderTextColor={Colors.textMuted}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                editable={!isLoading}
+              />
+            </Animated.View>
+            {errors.deviceNumber && (
+              <Text style={styles.errorText}>{errors.deviceNumber}</Text>
+            )}
           </View>
 
           {/* Remember Me & Forgot Password */}
@@ -196,17 +434,33 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           </View>
 
           {/* Login Button */}
-          <TouchableOpacity
-            style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
-            onPress={handleLogin}
-            disabled={isLoading}
+          <Animated.View
+            style={{
+              transform: [{ scale: buttonScaleAnim }],
+            }}
           >
-            {isLoading ? (
-              <ActivityIndicator color={Colors.text} size="small" />
-            ) : (
-              <Text style={styles.loginButtonText}>GİRİŞ YAP</Text>
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+              onPress={handleLogin}
+              onPressIn={handleButtonPressIn}
+              onPressOut={handleButtonPressOut}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={Colors.text} size="small" />
+              ) : showSuccess ? (
+                <Animated.View
+                  style={{
+                    transform: [{ scale: successAnim }],
+                  }}
+                >
+                  <Text style={styles.successIcon}>✓</Text>
+                </Animated.View>
+              ) : (
+                <Text style={styles.loginButtonText}>GİRİŞ YAP</Text>
+              )}
+            </TouchableOpacity>
+          </Animated.View>
         </View>
 
         {/* Mock Info */}
@@ -216,15 +470,18 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           <Text style={styles.mockInfoText}>user / password123 / AEGIS-002</Text>
           <Text style={styles.mockInfoText}>test / password123 / AEGIS-003</Text>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -236,12 +493,26 @@ const styles = StyleSheet.create({
     marginBottom: Spacing['3xl'],
     marginTop: Spacing.xl,
   },
+  logoPulseWrapper: {
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  logoGlowWrapper: {
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 20,
+    elevation: 10,
+  },
   logo: {
     fontSize: Typography['4xl'],
     fontWeight: Typography.bold,
-    color: Colors.primary,
+    color: '#FFFFFF', // Beyaz renk - daha belirgin
     letterSpacing: 4,
     marginBottom: Spacing.sm,
+    textShadowColor: Colors.primary,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 15,
+    textShadowOpacity: 1,
   },
   subtitle: {
     fontSize: Typography.lg,
@@ -269,23 +540,30 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
     fontWeight: Typography.medium,
   },
-  textInput: {
+  inputWrapper: {
     backgroundColor: Colors.background,
     borderRadius: BorderRadius.md,
+    borderWidth: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  textInput: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     fontSize: Typography.base,
     color: Colors.text,
-    borderWidth: 1,
-    borderColor: Colors.secondary,
+    backgroundColor: 'transparent',
   },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  passwordWrapper: {
     backgroundColor: Colors.background,
     borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.secondary,
+    borderWidth: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 4,
   },
   passwordInput: {
     flex: 1,
@@ -293,6 +571,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     fontSize: Typography.base,
     color: Colors.text,
+    backgroundColor: 'transparent',
   },
   eyeButton: {
     paddingHorizontal: Spacing.md,
@@ -300,6 +579,17 @@ const styles = StyleSheet.create({
   },
   eyeButtonText: {
     fontSize: Typography.lg,
+  },
+  errorText: {
+    fontSize: Typography.sm,
+    color: Colors.danger,
+    marginTop: Spacing.xs,
+    marginLeft: Spacing.xs,
+  },
+  successIcon: {
+    fontSize: Typography['2xl'],
+    color: Colors.success,
+    fontWeight: Typography.bold,
   },
   optionsContainer: {
     flexDirection: 'row',
