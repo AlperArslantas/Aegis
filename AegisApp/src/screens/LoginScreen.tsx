@@ -17,6 +17,7 @@ import {
   ScrollView,
   Animated,
   Easing,
+  Dimensions,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
@@ -27,7 +28,20 @@ interface LoginScreenProps {
   onLoginSuccess: (user: User, rememberMe: boolean) => void;
 }
 
+// Partikül arayüzü
+interface Particle {
+  id: number;
+  x: Animated.Value;
+  y: Animated.Value;
+  size: number;
+  opacity: number;
+  connections: number[];
+}
+
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
+  // Ekran boyutları
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  
   // Form state
   const [credentials, setCredentials] = useState<LoginCredentials>({
     emailOrUsername: '',
@@ -56,6 +70,60 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   }).current;
   const successAnim = useRef(new Animated.Value(0)).current;
   const buttonScaleAnim = useRef(new Animated.Value(1)).current;
+
+  // Partikül sistemi
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const particleAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  // Partikül oluşturma fonksiyonu
+  const createParticles = () => {
+    const particleCount = 40; // Performans için azaltıldı
+    const newParticles: Particle[] = [];
+    
+    for (let i = 0; i < particleCount; i++) {
+      newParticles.push({
+        id: i,
+        x: new Animated.Value(Math.random() * screenWidth),
+        y: new Animated.Value(Math.random() * screenHeight),
+        size: Math.random() * 2 + 1.5, // 1.5-3.5 arası boyut
+        opacity: Math.random() * 0.4 + 0.4, // 0.4-0.8 arası şeffaflık
+        connections: [],
+      });
+    }
+    
+    setParticles(newParticles);
+  };
+
+  // Partikül animasyon fonksiyonu
+  const animateParticles = () => {
+    const animations = particles.map(particle => {
+      const randomX = Math.random() * screenWidth;
+      const randomY = Math.random() * screenHeight;
+      const duration = Math.random() * 8000 + 6000; // 6-14 saniye arası (daha hızlı)
+      
+      return Animated.parallel([
+        Animated.timing(particle.x, {
+          toValue: randomX,
+          duration,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }),
+        Animated.timing(particle.y, {
+          toValue: randomY,
+          duration,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }),
+      ]);
+    });
+
+    const compositeAnimation = Animated.loop(
+      Animated.parallel(animations)
+    );
+    
+    particleAnimationRef.current = compositeAnimation;
+    compositeAnimation.start();
+  };
 
   // Animation functions
   useEffect(() => {
@@ -103,6 +171,23 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       glowAnimation.stop();
     };
   }, []);
+
+  // Partikül sistemi başlatma
+  useEffect(() => {
+    createParticles();
+  }, []);
+
+  useEffect(() => {
+    if (particles.length > 0) {
+      animateParticles();
+    }
+
+    return () => {
+      if (particleAnimationRef.current) {
+        particleAnimationRef.current.stop();
+      }
+    };
+  }, [particles]);
 
   // Validation function
   const validateField = (field: keyof LoginCredentials, value: string) => {
@@ -256,6 +341,25 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >
+      {/* Partikül Arka Planı */}
+      <View style={styles.particleContainer}>
+        {particles.map((particle) => (
+          <Animated.View
+            key={particle.id}
+            style={[
+              styles.particle,
+              {
+                left: particle.x,
+                top: particle.y,
+                width: particle.size,
+                height: particle.size,
+                opacity: particle.opacity,
+              },
+            ]}
+          />
+        ))}
+      </View>
+
       <KeyboardAvoidingView 
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -480,8 +584,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  particleContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+  },
+  particle: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 50,
+    shadowColor: '#FFFFFF',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.8,
+    shadowRadius: 3,
+    elevation: 5,
+  },
   keyboardContainer: {
     flex: 1,
+    zIndex: 2,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -512,7 +638,6 @@ const styles = StyleSheet.create({
     textShadowColor: Colors.primary,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 15,
-    textShadowOpacity: 1,
   },
   subtitle: {
     fontSize: Typography.lg,
