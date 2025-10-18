@@ -13,16 +13,20 @@ import {
 } from 'react-native';
 import { Typography, Spacing, BorderRadius } from '../constants/theme';
 import { useTheme } from '../utils/themeContext';
+import { useAuth } from '../utils/authContext';
 import { SettingsSwitch, SettingsButton, SettingsSectionHeader } from '../components/SettingsComponents';
 import BottomNavigation from '../components/BottomNavigation';
 
 interface SettingsScreenProps {
-  onTabChange?: (tab: 'home' | 'history' | 'settings') => void;
+  onTabChange?: (tab: 'home' | 'history' | 'settings' | 'profile') => void;
 }
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
   // Tema context
   const { theme, toggleTheme } = useTheme();
+  
+  // Auth context
+  const { logout } = useAuth();
   
   // State yönetimi
   const [currentTab, setCurrentTab] = useState<'home' | 'history' | 'settings'>('settings');
@@ -49,7 +53,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
   }, [currentTab]);
 
   const handleAccountSettings = () => {
-    Alert.alert('Hesap Ayarları', 'Hesap ayarları sayfası açılacak');
+    // Profil ekranına yönlendir
+    onTabChange?.('profile');
   };
 
   const handleDeviceSettings = () => {
@@ -78,7 +83,19 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
       'Hesabınızdan çıkmak istediğinizden emin misiniz?',
       [
         { text: 'İptal', style: 'cancel' },
-        { text: 'Çıkış Yap', style: 'destructive', onPress: () => console.log('Logout') },
+        { 
+          text: 'Çıkış Yap', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              await logout();
+              console.log('Logout successful');
+            } catch (error) {
+              console.error('Logout error:', error);
+              Alert.alert('Hata', 'Çıkış yapılırken bir hata oluştu.');
+            }
+          }
+        },
       ]
     );
   };
@@ -205,8 +222,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
         <SettingsSectionHeader title="Hesap" icon="👤" />
         <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
           <SettingsButton
-            title="Hesap Ayarları"
-            description="Profil bilgileri ve kişisel ayarlar"
+            title="Profil"
+            description="Profil bilgileri ve cihaz yönetimi"
             onPress={handleAccountSettings}
             icon="👤"
           />

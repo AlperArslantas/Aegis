@@ -26,13 +26,14 @@ import SidebarNavbar from '../components/SidebarNavbar';
 import NotificationsModal from '../components/NotificationsModal';
 import HistoryScreen from './HistoryScreen';
 import SettingsScreen from './SettingsScreen';
+import ProfileScreen from '../components/ProfileScreen';
 
 const HomeScreen: React.FC = () => {
   // Tema context
   const { theme } = useTheme();
   
   // State yönetimi
-  const [currentTab, setCurrentTab] = useState<'home' | 'history' | 'settings'>('home');
+  const [currentTab, setCurrentTab] = useState<'home' | 'history' | 'settings' | 'profile'>('home');
   const [isMicrophoneActive, setIsMicrophoneActive] = useState(false);
   const [isDoorUnlocked, setIsDoorUnlocked] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
@@ -72,11 +73,33 @@ const HomeScreen: React.FC = () => {
 
   const handleMenuItemPress = (menuItem: string) => {
     console.log('Menu item pressed:', menuItem);
+    
+    // Sidebar menü öğelerini BottomNavigation ile eşleştir
+    switch (menuItem) {
+      case 'dashboard':
+        setCurrentTab('home');
+        break;
+      case 'history':
+        setCurrentTab('history');
+        break;
+      case 'settings':
+        setCurrentTab('settings');
+        break;
+      default:
+        // Diğer menü öğeleri için console log
+        console.log('Menu item not mapped:', menuItem);
+        break;
+    }
   };
 
   const handleTabPress = (tab: 'home' | 'history' | 'settings') => {
     setCurrentTab(tab);
     console.log('Tab pressed:', tab);
+  };
+
+  const handleProfileTabChange = (tab: 'home' | 'history' | 'settings' | 'profile') => {
+    setCurrentTab(tab);
+    console.log('Profile tab changed:', tab);
   };
 
   // Ekran render fonksiyonu
@@ -86,6 +109,8 @@ const HomeScreen: React.FC = () => {
         return <SettingsScreen onTabChange={handleTabPress} />;
       case 'history':
         return <HistoryScreen onTabChange={handleTabPress} />;
+      case 'profile':
+        return <ProfileScreen onTabChange={handleProfileTabChange} />;
       default:
         return renderHomeContent();
     }

@@ -50,7 +50,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [credentials, setCredentials] = useState<LoginCredentials>({
     emailOrUsername: '',
     password: '',
-    deviceNumber: '',
+    deviceNumber: '', // Kullanılmayacak ama tip uyumluluğu için
   });
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,7 +61,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [errors, setErrors] = useState<{
     emailOrUsername?: string;
     password?: string;
-    deviceNumber?: string;
   }>({});
 
   // Animation refs
@@ -70,7 +69,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const inputFocusAnim = useRef({
     emailOrUsername: new Animated.Value(0),
     password: new Animated.Value(0),
-    deviceNumber: new Animated.Value(0),
   }).current;
   const successAnim = useRef(new Animated.Value(0)).current;
   const buttonScaleAnim = useRef(new Animated.Value(1)).current;
@@ -214,15 +212,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           delete newErrors.password;
         }
         break;
-      case 'deviceNumber':
-        if (!value.trim()) {
-          newErrors.deviceNumber = 'Cihaz numarası gereklidir';
-        } else if (!value.match(/^AEGIS-\d{3}$/)) {
-          newErrors.deviceNumber = 'Cihaz numarası AEGIS-XXX formatında olmalıdır';
-        } else {
-          delete newErrors.deviceNumber;
-        }
-        break;
     }
     
     setErrors(newErrors);
@@ -280,10 +269,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       Alert.alert('Hata', 'Şifre gereklidir');
       return;
     }
-    if (!credentials.deviceNumber.trim()) {
-      Alert.alert('Hata', 'Cihaz numarası gereklidir');
-      return;
-    }
 
     setIsLoading(true);
     
@@ -291,7 +276,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       const result = await mockLogin(
         credentials.emailOrUsername,
         credentials.password,
-        credentials.deviceNumber
+        '' // Cihaz numarası artık gerekli değil
       );
 
       if (result.success && result.user) {
@@ -491,42 +476,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             )}
           </View>
 
-          {/* Device Number Input */}
-          <View style={styles.inputContainer}>
-            <Text style={[styles.inputLabel, { color: theme.colors.textSecondary }]}>Cihaz Numarası</Text>
-            <Animated.View
-              style={[
-                styles.inputWrapper,
-                { backgroundColor: theme.colors.background },
-                {
-                  borderColor: inputFocusAnim.deviceNumber.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [theme.colors.secondary, theme.colors.primary],
-                  }),
-                  shadowOpacity: inputFocusAnim.deviceNumber.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, 0.3],
-                  }),
-                },
-              ]}
-            >
-              <TextInput
-                style={[styles.textInput, { color: theme.colors.text }]}
-                value={credentials.deviceNumber}
-                onChangeText={(text) => handleInputChange('deviceNumber', text)}
-                onFocus={() => handleInputFocus('deviceNumber')}
-                onBlur={() => handleInputBlur('deviceNumber')}
-                placeholder="AEGIS-001"
-                placeholderTextColor={theme.colors.textMuted}
-                autoCapitalize="characters"
-                autoCorrect={false}
-                editable={!isLoading}
-              />
-            </Animated.View>
-            {errors.deviceNumber && (
-              <Text style={[styles.errorText, { color: theme.colors.danger }]}>{errors.deviceNumber}</Text>
-            )}
-          </View>
 
           {/* Remember Me & Forgot Password */}
           <View style={styles.optionsContainer}>
@@ -590,9 +539,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         {/* Mock Info */}
         <View style={[styles.mockInfoContainer, { backgroundColor: theme.colors.surface, borderLeftColor: theme.colors.info }]}>
           <Text style={[styles.mockInfoTitle, { color: theme.colors.textSecondary }]}>Test Kullanıcıları:</Text>
-          <Text style={[styles.mockInfoText, { color: theme.colors.textMuted }]}>admin / password123 / AEGIS-001</Text>
-          <Text style={[styles.mockInfoText, { color: theme.colors.textMuted }]}>user / password123 / AEGIS-002</Text>
-          <Text style={[styles.mockInfoText, { color: theme.colors.textMuted }]}>test / password123 / AEGIS-003</Text>
+          <Text style={[styles.mockInfoText, { color: theme.colors.textMuted }]}>admin / password123</Text>
+          <Text style={[styles.mockInfoText, { color: theme.colors.textMuted }]}>user / password123</Text>
+          <Text style={[styles.mockInfoText, { color: theme.colors.textMuted }]}>test / password123</Text>
         </View>
         </ScrollView>
       </KeyboardAvoidingView>

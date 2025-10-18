@@ -26,9 +26,9 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({
   const { theme } = useTheme();
   
   const tabs = [
-    { key: 'home', label: 'HOME', icon: '🏠' },
-    { key: 'history', label: 'HISTORY', icon: '📹' },
-    { key: 'settings', label: 'SETTINGS', icon: '⚙️' },
+    { key: 'home', label: 'Ana Panel', icon: '🏠' },
+    { key: 'history', label: 'Geçmiş', icon: '📹' },
+    { key: 'settings', label: 'Ayarlar', icon: '⚙️' },
   ] as const;
 
   return (
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   tabLabel: {
-    fontSize: Typography.xs,
+    fontSize: 10,
     fontWeight: Typography.medium,
     textAlign: 'center',
   },
