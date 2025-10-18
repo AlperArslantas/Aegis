@@ -12,7 +12,8 @@ import {
   Animated,
   ScrollView,
 } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { useTheme } from '../utils/themeContext';
 
 interface Notification {
   id: string;
@@ -32,6 +33,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
   isVisible,
   onClose,
 }) => {
+  const { theme } = useTheme();
   const translateY = new Animated.Value(isVisible ? 0 : -300);
   const opacity = new Animated.Value(isVisible ? 1 : 0);
 
@@ -104,15 +106,15 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
   const getNotificationColor = (type: string): string => {
     switch (type) {
       case 'door':
-        return Colors.orange;
+        return theme.colors.orange;
       case 'sensor':
-        return Colors.warning;
+        return theme.colors.warning;
       case 'system':
-        return Colors.info;
+        return theme.colors.info;
       case 'alert':
-        return Colors.danger;
+        return theme.colors.danger;
       default:
-        return Colors.textSecondary;
+        return theme.colors.textSecondary;
     }
   };
 
@@ -121,7 +123,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
   return (
     <>
       {/* Overlay */}
-      <Animated.View style={[styles.overlay, { opacity }]}>
+      <Animated.View style={[styles.overlay, { backgroundColor: theme.colors.overlay, opacity }]}>
         <TouchableOpacity
           style={styles.overlayTouchable}
           onPress={onClose}
@@ -134,16 +136,17 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
         style={[
           styles.modal,
           {
+            backgroundColor: theme.colors.surface,
             transform: [{ translateY }],
             opacity,
           },
         ]}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Bildirimler</Text>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeIcon}>✕</Text>
+        <View style={[styles.header, { borderBottomColor: theme.colors.secondary }]}>
+          <Text style={[styles.title, { color: theme.colors.text }]}>Bildirimler</Text>
+          <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.colors.secondary }]} onPress={onClose}>
+            <Text style={[styles.closeIcon, { color: theme.colors.text }]}>✕</Text>
           </TouchableOpacity>
         </View>
 
@@ -154,18 +157,19 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
               key={notification.id}
               style={[
                 styles.notificationItem,
+                { borderBottomColor: theme.colors.secondary },
                 !notification.isRead && styles.unreadNotification,
               ]}
             >
-              <View style={styles.notificationIcon}>
+              <View style={[styles.notificationIcon, { backgroundColor: theme.colors.secondary }]}>
                 <Text style={styles.iconText}>
                   {getNotificationIcon(notification.type)}
                 </Text>
               </View>
               <View style={styles.notificationContent}>
-                <Text style={styles.notificationTitle}>{notification.title}</Text>
-                <Text style={styles.notificationMessage}>{notification.message}</Text>
-                <Text style={styles.notificationTime}>{notification.time}</Text>
+                <Text style={[styles.notificationTitle, { color: theme.colors.text }]}>{notification.title}</Text>
+                <Text style={[styles.notificationMessage, { color: theme.colors.textSecondary }]}>{notification.message}</Text>
+                <Text style={[styles.notificationTime, { color: theme.colors.textMuted }]}>{notification.time}</Text>
               </View>
               {!notification.isRead && (
                 <View
@@ -180,9 +184,9 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
         </ScrollView>
 
         {/* Footer */}
-        <View style={styles.footer}>
+        <View style={[styles.footer, { borderTopColor: theme.colors.secondary }]}>
           <TouchableOpacity style={styles.clearAllButton}>
-            <Text style={styles.clearAllText}>Tümünü Temizle</Text>
+            <Text style={[styles.clearAllText, { color: theme.colors.orange }]}>Tümünü Temizle</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>
@@ -197,7 +201,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: Colors.overlay,
     zIndex: 999,
   },
   overlayTouchable: {
@@ -208,7 +211,6 @@ const styles = StyleSheet.create({
     top: 60,
     right: Spacing.md,
     left: Spacing.md,
-    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     maxHeight: 400,
     zIndex: 1000,
@@ -221,24 +223,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.secondary,
   },
   title: {
     fontSize: Typography.lg,
     fontWeight: Typography.semibold,
-    color: Colors.text,
   },
   closeButton: {
     width: 32,
     height: 32,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeIcon: {
     fontSize: Typography.base,
-    color: Colors.text,
     fontWeight: Typography.bold,
   },
   notificationsList: {
@@ -250,7 +248,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.secondary,
   },
   unreadNotification: {
     backgroundColor: 'rgba(249, 115, 22, 0.1)',
@@ -259,7 +256,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
@@ -273,17 +269,14 @@ const styles = StyleSheet.create({
   notificationTitle: {
     fontSize: Typography.base,
     fontWeight: Typography.semibold,
-    color: Colors.text,
     marginBottom: 2,
   },
   notificationMessage: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
     marginBottom: 2,
   },
   notificationTime: {
     fontSize: Typography.xs,
-    color: Colors.textMuted,
   },
   unreadDot: {
     width: 8,
@@ -294,7 +287,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Colors.secondary,
   },
   clearAllButton: {
     alignSelf: 'center',
@@ -303,7 +295,6 @@ const styles = StyleSheet.create({
   },
   clearAllText: {
     fontSize: Typography.sm,
-    color: Colors.orange,
     fontWeight: Typography.medium,
   },
 });

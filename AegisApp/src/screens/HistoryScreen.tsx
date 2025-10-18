@@ -11,7 +11,8 @@ import {
   ScrollView,
   FlatList,
 } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius } from '../constants/theme';
+import { Typography, Spacing, BorderRadius } from '../constants/theme';
+import { useTheme } from '../utils/themeContext';
 import {
   HistoryItem,
   FilterButton,
@@ -35,6 +36,9 @@ interface HistoryRecord {
 }
 
 const HistoryScreen: React.FC<HistoryScreenProps> = ({ onTabChange }) => {
+  // Tema context
+  const { theme } = useTheme();
+  
   // State yönetimi
   const [currentTab, setCurrentTab] = useState<'home' | 'history' | 'settings'>('history');
   const [activeFilter, setActiveFilter] = useState<'all' | 'door' | 'motion' | 'fire' | 'sensor'>('all');
@@ -152,11 +156,11 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ onTabChange }) => {
 
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Geçmiş</Text>
-        <Text style={styles.headerSubtitle}>Tüm olaylar ve kayıtlar</Text>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.secondary }]}>
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Geçmiş</Text>
+        <Text style={[styles.headerSubtitle, { color: theme.colors.textSecondary }]}>Tüm olaylar ve kayıtlar</Text>
       </View>
 
       {/* İçerik Alanı */}
@@ -238,24 +242,19 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ onTabChange }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   header: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.lg,
-    backgroundColor: Colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.secondary,
   },
   headerTitle: {
     fontSize: Typography['3xl'],
     fontWeight: Typography.bold,
-    color: Colors.text,
     marginBottom: Spacing.xs,
   },
   headerSubtitle: {
     fontSize: Typography.base,
-    color: Colors.textSecondary,
   },
   contentContainer: {
     flex: 1,
@@ -263,23 +262,17 @@ const styles = StyleSheet.create({
   filterContainer: {
     marginBottom: Spacing.sm,
     paddingVertical: Spacing.xs,
-
- 
-   
   },
   filterContent: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
-
   },
   historyList: {
     height: 550,
-    
   },
   historyContent: {
     paddingTop: Spacing.xs,
     paddingBottom: 20,
-
   },
 });
 

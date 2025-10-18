@@ -11,7 +11,8 @@ import {
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
-import { Colors, Typography, Spacing } from '../constants/theme';
+import { Typography, Spacing } from '../constants/theme';
+import { useTheme } from '../utils/themeContext';
 
 interface HeaderProps {
   onMenuPress: () => void;
@@ -19,31 +20,33 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onMenuPress, onNotificationPress }) => {
+  const { theme } = useTheme();
+  
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         {/* Sol menü butonu */}
         <TouchableOpacity style={styles.menuButton} onPress={onMenuPress}>
           <View style={styles.menuIcon}>
-            <View style={styles.menuLine} />
-            <View style={styles.menuLine} />
-            <View style={styles.menuLine} />
+            <View style={[styles.menuLine, { backgroundColor: theme.colors.text }]} />
+            <View style={[styles.menuLine, { backgroundColor: theme.colors.text }]} />
+            <View style={[styles.menuLine, { backgroundColor: theme.colors.text }]} />
           </View>
         </TouchableOpacity>
 
         {/* Logo ve uygulama adı */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoIcon}>
+          <View style={[styles.logoIcon, { backgroundColor: theme.colors.orange }]}>
             <Text style={styles.logoSymbol}>🛡️</Text>
           </View>
-          <Text style={styles.appTitle}>AegisApp</Text>
+          <Text style={[styles.appTitle, { color: theme.colors.text }]}>AegisApp</Text>
         </View>
 
         {/* Sağ bildirim butonu */}
         <TouchableOpacity style={styles.notificationButton} onPress={onNotificationPress}>
           <View style={styles.notificationIcon}>
-            <View style={styles.notificationDot} />
-            <View style={styles.notificationBell} />
+            <View style={[styles.notificationDot, { backgroundColor: theme.colors.danger }]} />
+            <View style={[styles.notificationBell, { borderColor: theme.colors.text }]} />
           </View>
         </TouchableOpacity>
       </View>
@@ -53,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuPress, onNotificationPress }) => 
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: Colors.background,
+    // backgroundColor will be set dynamically
   },
   container: {
     flexDirection: 'row',
@@ -61,7 +64,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    backgroundColor: Colors.background,
   },
   menuButton: {
     width: 44,
@@ -76,7 +78,6 @@ const styles = StyleSheet.create({
   },
   menuLine: {
     height: 2,
-    backgroundColor: Colors.text,
     borderRadius: 1,
   },
   logoContainer: {
@@ -89,7 +90,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: Colors.orange,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.sm,
@@ -97,12 +97,10 @@ const styles = StyleSheet.create({
   logoSymbol: {
     fontSize: Typography.xl,
     fontWeight: Typography.bold,
-    color: Colors.text,
   },
   appTitle: {
     fontSize: Typography.lg,
     fontWeight: Typography.semibold,
-    color: Colors.text,
   },
   notificationButton: {
     width: 44,
@@ -124,13 +122,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.danger,
   },
   notificationBell: {
     width: 16,
     height: 16,
     borderWidth: 2,
-    borderColor: Colors.text,
     borderRadius: 2,
     backgroundColor: 'transparent',
   },

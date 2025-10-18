@@ -20,7 +20,8 @@ import {
   Dimensions,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { useTheme } from '../utils/themeContext';
 import { LoginCredentials, User } from '../types';
 import { mockLogin, mockForgotPassword } from '../utils/mockData';
 
@@ -39,6 +40,9 @@ interface Particle {
 }
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
+  // Tema context
+  const { theme } = useTheme();
+  
   // Ekran boyutları
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   
@@ -334,9 +338,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     }
   };
 
+  // Tema renklerine göre gradient
+  const gradientColors = theme.isDark 
+    ? ['#1E293B', '#0F172A', '#000000']
+    : ['#F8FAFC', '#E2E8F0', '#CBD5E1'];
+
   return (
     <LinearGradient
-      colors={['#1E293B', '#0F172A', '#000000']}
+      colors={gradientColors}
       style={styles.container}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
@@ -388,25 +397,26 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 },
               ]}
             >
-              <Text style={styles.logo}>AEGIS</Text>
+              <Text style={[styles.logo, { textShadowColor: theme.colors.primary }]}>AEGIS</Text>
             </Animated.View>
           </Animated.View>
-          <Text style={styles.subtitle}>Güvenlik Sistemi</Text>
-          <Text style={styles.welcomeText}>Hoş Geldiniz</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Güvenlik Sistemi</Text>
+          <Text style={[styles.welcomeText, { color: theme.colors.text }]}>Hoş Geldiniz</Text>
         </View>
 
         {/* Login Form */}
-        <View style={styles.formContainer}>
+        <View style={[styles.formContainer, { backgroundColor: theme.colors.surface }]}>
           {/* Email/Username Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>E-posta / Kullanıcı Adı</Text>
+            <Text style={[styles.inputLabel, { color: theme.colors.textSecondary }]}>E-posta / Kullanıcı Adı</Text>
             <Animated.View
               style={[
                 styles.inputWrapper,
+                { backgroundColor: theme.colors.background },
                 {
                   borderColor: inputFocusAnim.emailOrUsername.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [Colors.secondary, Colors.primary],
+                    outputRange: [theme.colors.secondary, theme.colors.primary],
                   }),
                   shadowOpacity: inputFocusAnim.emailOrUsername.interpolate({
                     inputRange: [0, 1],
@@ -416,13 +426,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               ]}
             >
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { color: theme.colors.text }]}
                 value={credentials.emailOrUsername}
                 onChangeText={(text) => handleInputChange('emailOrUsername', text)}
                 onFocus={() => handleInputFocus('emailOrUsername')}
                 onBlur={() => handleInputBlur('emailOrUsername')}
                 placeholder="admin@aegis.com veya admin"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={theme.colors.textMuted}
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="email-address"
@@ -430,20 +440,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               />
             </Animated.View>
             {errors.emailOrUsername && (
-              <Text style={styles.errorText}>{errors.emailOrUsername}</Text>
+              <Text style={[styles.errorText, { color: theme.colors.danger }]}>{errors.emailOrUsername}</Text>
             )}
           </View>
 
           {/* Password Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Şifre</Text>
+            <Text style={[styles.inputLabel, { color: theme.colors.textSecondary }]}>Şifre</Text>
             <Animated.View
               style={[
                 styles.passwordWrapper,
+                { backgroundColor: theme.colors.background },
                 {
                   borderColor: inputFocusAnim.password.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [Colors.secondary, Colors.primary],
+                    outputRange: [theme.colors.secondary, theme.colors.primary],
                   }),
                   shadowOpacity: inputFocusAnim.password.interpolate({
                     inputRange: [0, 1],
@@ -453,13 +464,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               ]}
             >
               <TextInput
-                style={styles.passwordInput}
+                style={[styles.passwordInput, { color: theme.colors.text }]}
                 value={credentials.password}
                 onChangeText={(text) => handleInputChange('password', text)}
                 onFocus={() => handleInputFocus('password')}
                 onBlur={() => handleInputBlur('password')}
                 placeholder="password123"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={theme.colors.textMuted}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -476,20 +487,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               </TouchableOpacity>
             </Animated.View>
             {errors.password && (
-              <Text style={styles.errorText}>{errors.password}</Text>
+              <Text style={[styles.errorText, { color: theme.colors.danger }]}>{errors.password}</Text>
             )}
           </View>
 
           {/* Device Number Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Cihaz Numarası</Text>
+            <Text style={[styles.inputLabel, { color: theme.colors.textSecondary }]}>Cihaz Numarası</Text>
             <Animated.View
               style={[
                 styles.inputWrapper,
+                { backgroundColor: theme.colors.background },
                 {
                   borderColor: inputFocusAnim.deviceNumber.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [Colors.secondary, Colors.primary],
+                    outputRange: [theme.colors.secondary, theme.colors.primary],
                   }),
                   shadowOpacity: inputFocusAnim.deviceNumber.interpolate({
                     inputRange: [0, 1],
@@ -499,20 +511,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               ]}
             >
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { color: theme.colors.text }]}
                 value={credentials.deviceNumber}
                 onChangeText={(text) => handleInputChange('deviceNumber', text)}
                 onFocus={() => handleInputFocus('deviceNumber')}
                 onBlur={() => handleInputBlur('deviceNumber')}
                 placeholder="AEGIS-001"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={theme.colors.textMuted}
                 autoCapitalize="characters"
                 autoCorrect={false}
                 editable={!isLoading}
               />
             </Animated.View>
             {errors.deviceNumber && (
-              <Text style={styles.errorText}>{errors.deviceNumber}</Text>
+              <Text style={[styles.errorText, { color: theme.colors.danger }]}>{errors.deviceNumber}</Text>
             )}
           </View>
 
@@ -523,17 +535,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               onPress={() => setRememberMe(!rememberMe)}
               disabled={isLoading}
             >
-              <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
-                {rememberMe && <Text style={styles.checkmark}>✓</Text>}
+              <View style={[
+                styles.checkbox, 
+                { borderColor: theme.colors.secondary },
+                rememberMe && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
+              ]}>
+                {rememberMe && <Text style={[styles.checkmark, { color: theme.colors.text }]}>✓</Text>}
               </View>
-              <Text style={styles.rememberMeText}>Beni Hatırla</Text>
+              <Text style={[styles.rememberMeText, { color: theme.colors.textSecondary }]}>Beni Hatırla</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={handleForgotPassword}
               disabled={isLoading}
             >
-              <Text style={styles.forgotPasswordText}>Şifremi Unuttum</Text>
+              <Text style={[styles.forgotPasswordText, { color: theme.colors.info }]}>Şifremi Unuttum</Text>
             </TouchableOpacity>
           </View>
 
@@ -544,35 +560,39 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             }}
           >
             <TouchableOpacity
-              style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+              style={[
+                styles.loginButton, 
+                { backgroundColor: theme.colors.primary },
+                isLoading && { backgroundColor: theme.colors.textMuted }
+              ]}
               onPress={handleLogin}
               onPressIn={handleButtonPressIn}
               onPressOut={handleButtonPressOut}
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator color={Colors.text} size="small" />
+                <ActivityIndicator color={theme.colors.text} size="small" />
               ) : showSuccess ? (
                 <Animated.View
                   style={{
                     transform: [{ scale: successAnim }],
                   }}
                 >
-                  <Text style={styles.successIcon}>✓</Text>
+                  <Text style={[styles.successIcon, { color: theme.colors.success }]}>✓</Text>
                 </Animated.View>
               ) : (
-                <Text style={styles.loginButtonText}>GİRİŞ YAP</Text>
+                <Text style={[styles.loginButtonText, { color: theme.colors.text }]}>GİRİŞ YAP</Text>
               )}
             </TouchableOpacity>
           </Animated.View>
         </View>
 
         {/* Mock Info */}
-        <View style={styles.mockInfoContainer}>
-          <Text style={styles.mockInfoTitle}>Test Kullanıcıları:</Text>
-          <Text style={styles.mockInfoText}>admin / password123 / AEGIS-001</Text>
-          <Text style={styles.mockInfoText}>user / password123 / AEGIS-002</Text>
-          <Text style={styles.mockInfoText}>test / password123 / AEGIS-003</Text>
+        <View style={[styles.mockInfoContainer, { backgroundColor: theme.colors.surface, borderLeftColor: theme.colors.info }]}>
+          <Text style={[styles.mockInfoTitle, { color: theme.colors.textSecondary }]}>Test Kullanıcıları:</Text>
+          <Text style={[styles.mockInfoText, { color: theme.colors.textMuted }]}>admin / password123 / AEGIS-001</Text>
+          <Text style={[styles.mockInfoText, { color: theme.colors.textMuted }]}>user / password123 / AEGIS-002</Text>
+          <Text style={[styles.mockInfoText, { color: theme.colors.textMuted }]}>test / password123 / AEGIS-003</Text>
         </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -635,22 +655,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF', // Beyaz renk - daha belirgin
     letterSpacing: 4,
     marginBottom: Spacing.sm,
-    textShadowColor: Colors.primary,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 15,
   },
   subtitle: {
     fontSize: Typography.lg,
-    color: Colors.textSecondary,
     marginBottom: Spacing.md,
   },
   welcomeText: {
     fontSize: Typography.xl,
-    color: Colors.text,
     fontWeight: Typography.semibold,
   },
   formContainer: {
-    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
@@ -661,12 +677,10 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
     marginBottom: Spacing.sm,
     fontWeight: Typography.medium,
   },
   inputWrapper: {
-    backgroundColor: Colors.background,
     borderRadius: BorderRadius.md,
     borderWidth: 2,
     shadowOffset: { width: 0, height: 4 },
@@ -677,11 +691,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     fontSize: Typography.base,
-    color: Colors.text,
     backgroundColor: 'transparent',
   },
   passwordWrapper: {
-    backgroundColor: Colors.background,
     borderRadius: BorderRadius.md,
     borderWidth: 2,
     flexDirection: 'row',
@@ -695,7 +707,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     fontSize: Typography.base,
-    color: Colors.text,
     backgroundColor: 'transparent',
   },
   eyeButton: {
@@ -707,13 +718,11 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: Typography.sm,
-    color: Colors.danger,
     marginTop: Spacing.xs,
     marginLeft: Spacing.xs,
   },
   successIcon: {
     fontSize: Typography['2xl'],
-    color: Colors.success,
     fontWeight: Typography.bold,
   },
   optionsContainer: {
@@ -730,63 +739,46 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: Colors.secondary,
     borderRadius: BorderRadius.sm,
     marginRight: Spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkboxChecked: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
   checkmark: {
-    color: Colors.text,
     fontSize: Typography.sm,
     fontWeight: Typography.bold,
   },
   rememberMeText: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
   },
   forgotPasswordText: {
     fontSize: Typography.sm,
-    color: Colors.info,
     fontWeight: Typography.medium,
   },
   loginButton: {
-    backgroundColor: Colors.primary,
     borderRadius: BorderRadius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
   },
-  loginButtonDisabled: {
-    backgroundColor: Colors.textMuted,
-  },
   loginButtonText: {
     fontSize: Typography.base,
-    color: Colors.text,
     fontWeight: Typography.semibold,
     letterSpacing: 1,
   },
   mockInfoContainer: {
-    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     borderLeftWidth: 4,
-    borderLeftColor: Colors.info,
   },
   mockInfoTitle: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
     fontWeight: Typography.semibold,
     marginBottom: Spacing.sm,
   },
   mockInfoText: {
     fontSize: Typography.xs,
-    color: Colors.textMuted,
     marginBottom: Spacing.xs,
     fontFamily: 'monospace',
   },

@@ -11,7 +11,8 @@ import {
   StyleSheet,
   Switch,
 } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { useTheme } from '../utils/themeContext';
 
 // Switch Bileşeni
 interface SettingsSwitchProps {
@@ -29,27 +30,29 @@ export const SettingsSwitch: React.FC<SettingsSwitchProps> = ({
   onValueChange,
   icon,
 }) => {
+  const { theme } = useTheme();
+  
   return (
-    <View style={styles.settingItem}>
+    <View style={[styles.settingItem, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.secondary }]}>
       <View style={styles.settingContent}>
         {icon && (
-          <View style={styles.iconContainer}>
+          <View style={[styles.iconContainer, { backgroundColor: theme.colors.orange }]}>
             <Text style={styles.iconText}>{icon}</Text>
           </View>
         )}
         <View style={styles.textContainer}>
-          <Text style={styles.settingTitle}>{title}</Text>
+          <Text style={[styles.settingTitle, { color: theme.colors.text }]}>{title}</Text>
           {description && (
-            <Text style={styles.settingDescription}>{description}</Text>
+            <Text style={[styles.settingDescription, { color: theme.colors.textSecondary }]}>{description}</Text>
           )}
         </View>
       </View>
       <Switch
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ false: Colors.secondary, true: Colors.orange }}
-        thumbColor={value ? Colors.text : Colors.textMuted}
-        ios_backgroundColor={Colors.secondary}
+        trackColor={{ false: theme.colors.secondary, true: theme.colors.orange }}
+        thumbColor={value ? theme.colors.text : theme.colors.textMuted}
+        ios_backgroundColor={theme.colors.secondary}
       />
     </View>
   );
@@ -71,12 +74,15 @@ export const SettingsButton: React.FC<SettingsButtonProps> = ({
   icon,
   variant = 'default',
 }) => {
+  const { theme } = useTheme();
+  
   return (
     <TouchableOpacity
       style={[
         styles.settingItem,
         styles.buttonItem,
-        variant === 'danger' && styles.dangerButton,
+        { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.secondary },
+        variant === 'danger' && { backgroundColor: 'rgba(239, 68, 68, 0.1)' },
       ]}
       onPress={onPress}
       activeOpacity={0.7}
@@ -85,7 +91,8 @@ export const SettingsButton: React.FC<SettingsButtonProps> = ({
         {icon && (
           <View style={[
             styles.iconContainer,
-            variant === 'danger' && styles.dangerIcon,
+            { backgroundColor: theme.colors.orange },
+            variant === 'danger' && { backgroundColor: theme.colors.danger },
           ]}>
             <Text style={styles.iconText}>{icon}</Text>
           </View>
@@ -93,16 +100,17 @@ export const SettingsButton: React.FC<SettingsButtonProps> = ({
         <View style={styles.textContainer}>
           <Text style={[
             styles.settingTitle,
-            variant === 'danger' && styles.dangerText,
+            { color: theme.colors.text },
+            variant === 'danger' && { color: theme.colors.danger },
           ]}>
             {title}
           </Text>
           {description && (
-            <Text style={styles.settingDescription}>{description}</Text>
+            <Text style={[styles.settingDescription, { color: theme.colors.textSecondary }]}>{description}</Text>
           )}
         </View>
       </View>
-      <Text style={styles.arrowIcon}>›</Text>
+      <Text style={[styles.arrowIcon, { color: theme.colors.textMuted }]}>›</Text>
     </TouchableOpacity>
   );
 };
@@ -117,12 +125,14 @@ export const SettingsSectionHeader: React.FC<SettingsSectionHeaderProps> = ({
   title,
   icon,
 }) => {
+  const { theme } = useTheme();
+  
   return (
-    <View style={styles.sectionHeader}>
+    <View style={[styles.sectionHeader, { backgroundColor: theme.colors.background, borderBottomColor: theme.colors.secondary }]}>
       {icon && (
         <Text style={styles.sectionIcon}>{icon}</Text>
       )}
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>{title}</Text>
     </View>
   );
 };
@@ -134,15 +144,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.secondary,
   },
   buttonItem: {
-    backgroundColor: Colors.surface,
-  },
-  dangerButton: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    // backgroundColor will be set dynamically
   },
   settingContent: {
     flex: 1,
@@ -153,13 +158,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.orange,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
-  },
-  dangerIcon: {
-    backgroundColor: Colors.danger,
   },
   iconText: {
     fontSize: Typography.lg,
@@ -170,19 +171,13 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: Typography.base,
     fontWeight: Typography.medium,
-    color: Colors.text,
     marginBottom: 2,
-  },
-  dangerText: {
-    color: Colors.danger,
   },
   settingDescription: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
   },
   arrowIcon: {
     fontSize: Typography.xl,
-    color: Colors.textMuted,
     fontWeight: Typography.bold,
   },
   sectionHeader: {
@@ -190,9 +185,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.secondary,
   },
   sectionIcon: {
     fontSize: Typography.base,
@@ -201,7 +194,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: Typography.sm,
     fontWeight: Typography.semibold,
-    color: Colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },

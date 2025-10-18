@@ -11,7 +11,8 @@ import {
   StyleSheet,
   Image,
 } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { useTheme } from '../utils/themeContext';
 
 // History Item Bileşeni
 interface HistoryItemProps {
@@ -34,6 +35,8 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
   status,
   onPress,
 }) => {
+  const { theme } = useTheme();
+  
   const getTypeIcon = (type: string): string => {
     switch (type) {
       case 'door':
@@ -52,27 +55,27 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
   const getStatusColor = (status: string): string => {
     switch (status) {
       case 'success':
-        return Colors.success;
+        return theme.colors.success;
       case 'warning':
-        return Colors.warning;
+        return theme.colors.warning;
       case 'danger':
-        return Colors.danger;
+        return theme.colors.danger;
       default:
-        return Colors.textSecondary;
+        return theme.colors.textSecondary;
     }
   };
 
   return (
-    <TouchableOpacity style={styles.historyItem} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[styles.historyItem, { backgroundColor: theme.colors.surface }]} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.itemContent}>
         <View style={styles.itemHeader}>
-          <View style={styles.iconContainer}>
+          <View style={[styles.iconContainer, { backgroundColor: theme.colors.orange }]}>
             <Text style={styles.typeIcon}>{getTypeIcon(type)}</Text>
           </View>
           <View style={styles.itemInfo}>
-            <Text style={styles.itemTitle}>{title}</Text>
-            <Text style={styles.itemDescription}>{description}</Text>
-            <Text style={styles.itemTimestamp}>{timestamp}</Text>
+            <Text style={[styles.itemTitle, { color: theme.colors.text }]}>{title}</Text>
+            <Text style={[styles.itemDescription, { color: theme.colors.textSecondary }]}>{description}</Text>
+            <Text style={[styles.itemTimestamp, { color: theme.colors.textMuted }]}>{timestamp}</Text>
           </View>
           <View style={[styles.statusDot, { backgroundColor: getStatusColor(status) }]} />
         </View>
@@ -100,16 +103,23 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
   onPress,
   icon,
 }) => {
+  const { theme } = useTheme();
+  
   return (
     <TouchableOpacity
-      style={[styles.filterButton, isActive && styles.activeFilterButton]}
+      style={[
+        styles.filterButton,
+        { backgroundColor: theme.colors.surface, borderColor: theme.colors.secondary },
+        isActive && { backgroundColor: theme.colors.orange, borderColor: theme.colors.orange }
+      ]}
       onPress={onPress}
       activeOpacity={0.7}
     >
       {icon && <Text style={styles.filterIcon}>{icon}</Text>}
       <Text style={[
         styles.filterText,
-        isActive && styles.activeFilterText,
+        { color: isActive ? theme.colors.text : theme.colors.textSecondary },
+        isActive && { fontWeight: Typography.bold }
       ]}>
         {title}
       </Text>
@@ -129,10 +139,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   onChangeText,
   placeholder = 'Ara...',
 }) => {
+  const { theme } = useTheme();
+  
   return (
-    <View style={styles.searchContainer}>
-      <Text style={styles.searchIcon}>🔍</Text>
-      <Text style={styles.searchPlaceholder}>{placeholder}</Text>
+    <View style={[styles.searchContainer, { backgroundColor: theme.colors.surface, borderColor: theme.colors.secondary }]}>
+      <Text style={[styles.searchIcon, { color: theme.colors.textMuted }]}>🔍</Text>
+      <Text style={[styles.searchPlaceholder, { color: theme.colors.textMuted }]}>{placeholder}</Text>
     </View>
   );
 };
@@ -149,18 +161,19 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   description,
   icon,
 }) => {
+  const { theme } = useTheme();
+  
   return (
     <View style={styles.emptyState}>
       <Text style={styles.emptyIcon}>{icon}</Text>
-      <Text style={styles.emptyTitle}>{title}</Text>
-      <Text style={styles.emptyDescription}>{description}</Text>
+      <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>{title}</Text>
+      <Text style={[styles.emptyDescription, { color: theme.colors.textSecondary }]}>{description}</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   historyItem: {
-    backgroundColor: Colors.surface,
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.xs,
     borderRadius: BorderRadius.lg,
@@ -178,7 +191,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.orange,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.md,
@@ -192,17 +204,14 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: Typography.base,
     fontWeight: Typography.semibold,
-    color: Colors.text,
     marginBottom: 2,
   },
   itemDescription: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
     marginBottom: 4,
   },
   itemTimestamp: {
     fontSize: Typography.xs,
-    color: Colors.textMuted,
   },
   statusDot: {
     width: 12,
@@ -226,24 +235,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     marginRight: Spacing.sm,
     borderWidth: 1.5,
-    borderColor: Colors.secondary,
     minWidth: 70,
     height: 40,
-    shadowColor: Colors.background,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 1,
-  },
-  activeFilterButton: {
-    backgroundColor: Colors.orange,
-    borderColor: Colors.orange,
-    shadowColor: Colors.orange,
-    shadowOpacity: 0.3,
   },
   filterIcon: {
     fontSize: Typography.sm,
@@ -251,34 +251,25 @@ const styles = StyleSheet.create({
   },
   filterText: {
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
     fontWeight: Typography.medium,
     textAlign: 'center',
-  },
-  activeFilterText: {
-    color: Colors.text,
-    fontWeight: Typography.bold,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.lg,
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.secondary,
   },
   searchIcon: {
     fontSize: Typography.base,
     marginRight: Spacing.sm,
-    color: Colors.textMuted,
   },
   searchPlaceholder: {
     fontSize: Typography.base,
-    color: Colors.textMuted,
     flex: 1,
   },
   emptyState: {
@@ -294,13 +285,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: Typography.xl,
     fontWeight: Typography.semibold,
-    color: Colors.text,
     marginBottom: Spacing.sm,
     textAlign: 'center',
   },
   emptyDescription: {
     fontSize: Typography.base,
-    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
   },

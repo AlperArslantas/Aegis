@@ -12,7 +12,8 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
+import { useTheme } from '../utils/themeContext';
 
 interface SidebarNavbarProps {
   isVisible: boolean;
@@ -27,6 +28,7 @@ const SidebarNavbar: React.FC<SidebarNavbarProps> = ({
   onClose,
   onMenuItemPress,
 }) => {
+  const { theme } = useTheme();
   // Menü öğeleri
   const menuItems = [
     { id: 'dashboard', title: 'Ana Panel', icon: '🏠' },
@@ -118,7 +120,7 @@ const SidebarNavbar: React.FC<SidebarNavbarProps> = ({
   return (
     <>
       {/* Overlay */}
-      <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]}>
+      <Animated.View style={[styles.overlay, { backgroundColor: theme.colors.overlay, opacity: overlayOpacity }]}>
         <TouchableOpacity
           style={styles.overlayTouchable}
           onPress={onClose}
@@ -127,25 +129,26 @@ const SidebarNavbar: React.FC<SidebarNavbarProps> = ({
       </Animated.View>
 
       {/* Sidebar */}
-      <Animated.View
+        <Animated.View
         style={[
           styles.sidebar,
           {
+            backgroundColor: theme.colors.surface,
             transform: [{ translateX }],
           },
         ]}
       >
         <Animated.View style={{ opacity: contentOpacity, flex: 1 }}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderBottomColor: theme.colors.secondary }]}>
             <View style={styles.logoContainer}>
-              <View style={styles.logoIcon}>
-                <Text style={styles.logoSymbol}>🛡️</Text>
+              <View style={[styles.logoIcon, { backgroundColor: theme.colors.orange }]}>
+                <Text style={[styles.logoSymbol, { color: theme.colors.text }]}>🛡️</Text>
               </View>
-              <Text style={styles.appTitle}>AegisApp</Text>
+              <Text style={[styles.appTitle, { color: theme.colors.text }]}>AegisApp</Text>
             </View>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Text style={styles.closeIcon}>✕</Text>
+            <TouchableOpacity style={[styles.closeButton, { backgroundColor: theme.colors.secondary }]} onPress={onClose}>
+              <Text style={[styles.closeIcon, { color: theme.colors.text }]}>✕</Text>
             </TouchableOpacity>
           </View>
 
@@ -157,7 +160,7 @@ const SidebarNavbar: React.FC<SidebarNavbarProps> = ({
                 style={{ opacity: menuItemOpacities[index] }}
               >
                 <TouchableOpacity
-                  style={styles.menuItem}
+                  style={[styles.menuItem, { borderBottomColor: theme.colors.secondary }]}
                   onPress={() => {
                     onMenuItemPress(item.id);
                     onClose();
@@ -165,16 +168,16 @@ const SidebarNavbar: React.FC<SidebarNavbarProps> = ({
                   activeOpacity={0.7}
                 >
                   <Text style={styles.menuIcon}>{item.icon}</Text>
-                  <Text style={styles.menuText}>{item.title}</Text>
+                  <Text style={[styles.menuText, { color: theme.colors.text }]}>{item.title}</Text>
                 </TouchableOpacity>
               </Animated.View>
             ))}
           </View>
 
           {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.versionText}>v1.0.0</Text>
-            <Text style={styles.copyrightText}>© 2024 AegisApp</Text>
+          <View style={[styles.footer, { borderTopColor: theme.colors.secondary }]}>
+            <Text style={[styles.versionText, { color: theme.colors.textMuted }]}>v1.0.0</Text>
+            <Text style={[styles.copyrightText, { color: theme.colors.textMuted }]}>© 2024 AegisApp</Text>
           </View>
         </Animated.View>
       </Animated.View>
@@ -189,7 +192,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: Colors.overlay,
     zIndex: 999,
   },
   overlayTouchable: {
@@ -201,7 +203,6 @@ const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
     width: width * 0.7, // Daha dar genişlik
-    backgroundColor: Colors.surface,
     zIndex: 1000,
     ...Shadows.lg,
   },
@@ -212,7 +213,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.secondary,
   },
   logoContainer: {
     flexDirection: 'row',
@@ -222,7 +222,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.orange,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.sm,
@@ -230,24 +229,20 @@ const styles = StyleSheet.create({
   logoSymbol: {
     fontSize: Typography.xl,
     fontWeight: Typography.bold,
-    color: Colors.text,
   },
   appTitle: {
     fontSize: Typography.lg,
     fontWeight: Typography.semibold,
-    color: Colors.text,
   },
   closeButton: {
     width: 32,
     height: 32,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeIcon: {
     fontSize: Typography.base,
-    color: Colors.text,
     fontWeight: Typography.bold,
   },
   menuContainer: {
@@ -260,7 +255,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.secondary,
   },
   menuIcon: {
     fontSize: Typography.lg,
@@ -270,24 +264,20 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: Typography.base,
-    color: Colors.text,
     fontWeight: Typography.medium,
   },
   footer: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Colors.secondary,
   },
   versionText: {
     fontSize: Typography.sm,
-    color: Colors.textMuted,
     textAlign: 'center',
     marginBottom: Spacing.xs,
   },
   copyrightText: {
     fontSize: Typography.xs,
-    color: Colors.textMuted,
     textAlign: 'center',
   },
 });

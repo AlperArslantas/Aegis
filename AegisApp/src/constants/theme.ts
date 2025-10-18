@@ -1,9 +1,12 @@
 /**
  * AegisApp - Tema ve Renk Paleti
- * Güvenlik uygulaması için koyu tema renkleri
+ * Güvenlik uygulaması için tema sistemi
  */
 
-export const Colors = {
+import { ThemeColors } from '../utils/themeContext';
+
+// Dark tema renkleri (varsayılan)
+export const DarkColors: ThemeColors = {
   // Ana renkler
   primary: '#1E293B', // Koyu lacivert
   secondary: '#334155', // Orta gri
@@ -31,6 +34,39 @@ export const Colors = {
   overlay: 'rgba(0, 0, 0, 0.5)',
   overlayLight: 'rgba(0, 0, 0, 0.3)',
 } as const;
+
+// Light tema renkleri
+export const LightColors: ThemeColors = {
+  // Ana renkler
+  primary: '#3B82F6', // Mavi
+  secondary: '#E5E7EB', // Açık gri
+  
+  // Arka plan renkleri
+  background: '#FFFFFF', // Beyaz
+  surface: '#F9FAFB', // Çok açık gri
+  
+  // Metin renkleri
+  text: '#111827', // Koyu gri
+  textSecondary: '#6B7280', // Orta gri
+  textMuted: '#9CA3AF', // Açık gri
+  
+  // Durum renkleri
+  success: '#10B981', // Yeşil
+  warning: '#F59E0B', // Turuncu
+  danger: '#EF4444', // Kırmızı
+  info: '#3B82F6', // Mavi
+  
+  // Özel renkler
+  orange: '#F97316', // Turuncu
+  teal: '#14B8A6', // Teal
+  
+  // Şeffaflık
+  overlay: 'rgba(0, 0, 0, 0.5)',
+  overlayLight: 'rgba(0, 0, 0, 0.3)',
+} as const;
+
+// Geriye uyumluluk için (deprecated - useTheme hook kullanın)
+export const Colors = DarkColors;
 
 export const Typography = {
   // Font boyutları

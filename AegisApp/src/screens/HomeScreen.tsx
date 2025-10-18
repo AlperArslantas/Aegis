@@ -10,7 +10,8 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { Colors, Typography, Spacing } from '../constants/theme';
+import { Typography, Spacing } from '../constants/theme';
+import { useTheme } from '../utils/themeContext';
 import { SensorData, VideoStream as VideoStreamType, DoorCall } from '../types';
 import { getMockSensorData, getMockVideoStream, getMockDoorCall } from '../utils/mockData';
 
@@ -27,6 +28,9 @@ import HistoryScreen from './HistoryScreen';
 import SettingsScreen from './SettingsScreen';
 
 const HomeScreen: React.FC = () => {
+  // Tema context
+  const { theme } = useTheme();
+  
   // State yönetimi
   const [currentTab, setCurrentTab] = useState<'home' | 'history' | 'settings'>('home');
   const [isMicrophoneActive, setIsMicrophoneActive] = useState(false);
@@ -124,17 +128,17 @@ const HomeScreen: React.FC = () => {
         <SensorPanel sensorData={sensorData} />
 
         {/* Durum Bilgileri */}
-        <View style={styles.statusContainer}>
-          <Text style={styles.statusTitle}>SİSTEM DURUMU</Text>
+        <View style={[styles.statusContainer, { backgroundColor: theme.colors.surface }]}>
+          <Text style={[styles.statusTitle, { color: theme.colors.textSecondary }]}>SİSTEM DURUMU</Text>
           <View style={styles.statusItem}>
-            <Text style={styles.statusLabel}>Mikrofon:</Text>
-            <Text style={[styles.statusValue, { color: isMicrophoneActive ? Colors.success : Colors.textMuted }]}>
+            <Text style={[styles.statusLabel, { color: theme.colors.text }]}>Mikrofon:</Text>
+            <Text style={[styles.statusValue, { color: isMicrophoneActive ? theme.colors.success : theme.colors.textMuted }]}>
               {isMicrophoneActive ? 'Aktif' : 'Pasif'}
             </Text>
           </View>
           <View style={styles.statusItem}>
-            <Text style={styles.statusLabel}>Kapı Kilidi:</Text>
-            <Text style={[styles.statusValue, { color: isDoorUnlocked ? Colors.warning : Colors.success }]}>
+            <Text style={[styles.statusLabel, { color: theme.colors.text }]}>Kapı Kilidi:</Text>
+            <Text style={[styles.statusValue, { color: isDoorUnlocked ? theme.colors.warning : theme.colors.success }]}>
               {isDoorUnlocked ? 'Açık' : 'Kilitli'}
             </Text>
           </View>
@@ -171,7 +175,7 @@ const HomeScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Mevcut Ekran */}
       {renderCurrentScreen()}
 
@@ -189,7 +193,6 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   scrollView: {
     flex: 1,
@@ -198,7 +201,6 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   welcomeContainer: {
-    backgroundColor: Colors.surface,
     marginHorizontal: Spacing.md,
     marginTop: Spacing.lg,
     padding: Spacing.lg,
@@ -208,23 +210,19 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: Typography['2xl'],
     fontWeight: Typography.bold,
-    color: Colors.text,
     marginBottom: Spacing.sm,
   },
   welcomeSubtitle: {
     fontSize: Typography.lg,
     fontWeight: Typography.semibold,
-    color: Colors.textSecondary,
     marginBottom: Spacing.md,
   },
   welcomeDescription: {
     fontSize: Typography.base,
-    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },
   statusContainer: {
-    backgroundColor: Colors.surface,
     marginHorizontal: Spacing.md,
     marginTop: Spacing.lg,
     padding: Spacing.md,
@@ -233,7 +231,6 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: Typography.sm,
     fontWeight: Typography.semibold,
-    color: Colors.textSecondary,
     marginBottom: Spacing.md,
     textAlign: 'center',
     letterSpacing: 1,
@@ -246,7 +243,6 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     fontSize: Typography.base,
-    color: Colors.text,
   },
   statusValue: {
     fontSize: Typography.base,

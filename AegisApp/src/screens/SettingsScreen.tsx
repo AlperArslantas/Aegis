@@ -11,7 +11,8 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius } from '../constants/theme';
+import { Typography, Spacing, BorderRadius } from '../constants/theme';
+import { useTheme } from '../utils/themeContext';
 import { SettingsSwitch, SettingsButton, SettingsSectionHeader } from '../components/SettingsComponents';
 import BottomNavigation from '../components/BottomNavigation';
 
@@ -20,6 +21,9 @@ interface SettingsScreenProps {
 }
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
+  // Tema context
+  const { theme, toggleTheme } = useTheme();
+  
   // State yönetimi
   const [currentTab, setCurrentTab] = useState<'home' | 'history' | 'settings'>('settings');
   
@@ -28,7 +32,6 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [autoLockEnabled, setAutoLockEnabled] = useState(false);
-  const [nightModeEnabled, setNightModeEnabled] = useState(true);
   const [motionDetectionEnabled, setMotionDetectionEnabled] = useState(true);
   const [doorbellEnabled, setDoorbellEnabled] = useState(true);
   const [fireDetectionEnabled, setFireDetectionEnabled] = useState(true);
@@ -92,11 +95,11 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Ayarlar</Text>
-        <Text style={styles.headerSubtitle}>Uygulama ve sistem ayarlarını yönetin</Text>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.secondary }]}>
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Ayarlar</Text>
+        <Text style={[styles.headerSubtitle, { color: theme.colors.textSecondary }]}>Uygulama ve sistem ayarlarını yönetin</Text>
       </View>
 
       <ScrollView
@@ -106,7 +109,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
       >
         {/* Bildirim Ayarları */}
         <SettingsSectionHeader title="Bildirimler" icon="🔔" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
           <SettingsSwitch
             title="Bildirimler"
             description="Uygulama bildirimlerini al"
@@ -132,7 +135,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
 
         {/* Güvenlik Ayarları */}
         <SettingsSectionHeader title="Güvenlik" icon="🔒" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
           <SettingsSwitch
             title="Otomatik Kilit"
             description="Belirli süre sonra otomatik kilit"
@@ -150,12 +153,12 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
 
         {/* Sistem Ayarları */}
         <SettingsSectionHeader title="Sistem" icon="⚙️" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
           <SettingsSwitch
             title="Gece Modu"
-            description="Karanlık tema kullan"
-            value={nightModeEnabled}
-            onValueChange={setNightModeEnabled}
+            description={theme.isDark ? "Karanlık tema aktif" : "Açık tema aktif"}
+            value={theme.isDark}
+            onValueChange={toggleTheme}
             icon="🌙"
           />
           <SettingsButton
@@ -174,7 +177,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
 
         {/* Algılama Ayarları */}
         <SettingsSectionHeader title="Algılama" icon="🔍" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
           <SettingsSwitch
             title="Hareket Algılama"
             description="Hareket sensörlerini aktif et"
@@ -200,7 +203,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
 
         {/* Hesap Ayarları */}
         <SettingsSectionHeader title="Hesap" icon="👤" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
           <SettingsButton
             title="Hesap Ayarları"
             description="Profil bilgileri ve kişisel ayarlar"
@@ -211,7 +214,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
 
         {/* Diğer */}
         <SettingsSectionHeader title="Diğer" icon="📋" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: theme.colors.surface }]}>
           <SettingsButton
             title="Hakkında"
             description="Uygulama bilgileri ve sürüm"
@@ -247,24 +250,19 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onTabChange }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   header: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.lg,
-    backgroundColor: Colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.secondary,
   },
   headerTitle: {
     fontSize: Typography['3xl'],
     fontWeight: Typography.bold,
-    color: Colors.text,
     marginBottom: Spacing.xs,
   },
   headerSubtitle: {
     fontSize: Typography.base,
-    color: Colors.textSecondary,
   },
   scrollView: {
     flex: 1,
@@ -273,7 +271,6 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   section: {
-    backgroundColor: Colors.surface,
     marginBottom: Spacing.md,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',

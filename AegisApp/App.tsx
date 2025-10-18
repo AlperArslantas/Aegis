@@ -9,18 +9,20 @@ import React from 'react';
 import { StatusBar, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Colors } from './src/constants/theme';
 import { AuthProvider, useAuth } from './src/utils/authContext';
+import { ThemeProvider, useTheme } from './src/utils/themeContext';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 
 // Ana uygulama içeriği
 const AppContent: React.FC = () => {
   const { authState, login, isLoading } = useAuth();
+  const { theme } = useTheme();
 
   // Loading state
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -40,17 +42,17 @@ const AppContent: React.FC = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
-      <AppContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
-    backgroundColor: Colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
