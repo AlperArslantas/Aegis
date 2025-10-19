@@ -11,7 +11,7 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import { check, request, PERMISSIONS, RESULTS, checkNotifications, requestNotifications } from 'react-native-permissions';
 import { Typography, Spacing } from '../constants/theme';
 import { useTheme } from '../utils/themeContext';
 import { SensorData, VideoStream as VideoStreamType, DoorCall } from '../types';
@@ -80,6 +80,22 @@ const HomeScreen: React.FC = () => {
     };
 
     ensureMicrophonePermission();
+  }, []);
+
+  // Bildirim izni (iOS ve Android 13+)
+  useEffect(() => {
+    const ensureNotificationPermission = async () => {
+      try {
+        const { status } = await checkNotifications();
+        if (status !== RESULTS.GRANTED) {
+          await requestNotifications(['alert', 'sound', 'badge']);
+        }
+      } catch (e) {
+        // sessizce geç
+      }
+    };
+
+    ensureNotificationPermission();
   }, []);
 
   // Event handlers
