@@ -56,6 +56,64 @@ const HomeScreen: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Kamera, Kişiler, Konum (ve Android CALL_PHONE) izinleri
+  useEffect(() => {
+    const ensureCorePermissions = async () => {
+      try {
+        // Kamera
+        const cameraPermission = Platform.select({
+          ios: PERMISSIONS.IOS.CAMERA,
+          android: PERMISSIONS.ANDROID.CAMERA,
+          default: undefined,
+        });
+        if (cameraPermission) {
+          const s = await check(cameraPermission);
+          if (s !== RESULTS.GRANTED) {
+            await request(cameraPermission);
+          }
+        }
+
+        // Kişiler
+        const contactsPermission = Platform.select({
+          ios: PERMISSIONS.IOS.CONTACTS,
+          android: PERMISSIONS.ANDROID.READ_CONTACTS,
+          default: undefined,
+        });
+        if (contactsPermission) {
+          const s = await check(contactsPermission);
+          if (s !== RESULTS.GRANTED) {
+            await request(contactsPermission);
+          }
+        }
+
+        // Konum (WhenInUse / Fine)
+        const locationPermission = Platform.select({
+          ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+          android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+          default: undefined,
+        });
+        if (locationPermission) {
+          const s = await check(locationPermission);
+          if (s !== RESULTS.GRANTED) {
+            await request(locationPermission);
+          }
+        }
+
+        // Android: Acil durum araması için CALL_PHONE
+        if (Platform.OS === 'android') {
+          const phoneStatus = await check(PERMISSIONS.ANDROID.CALL_PHONE);
+          if (phoneStatus !== RESULTS.GRANTED) {
+            await request(PERMISSIONS.ANDROID.CALL_PHONE);
+          }
+        }
+      } catch (e) {
+        // sessizce geç
+      }
+    };
+
+    ensureCorePermissions();
+  }, []);
+
   // Uygulama açılışında Mikrofon iznini iste
   useEffect(() => {
     const ensureMicrophonePermission = async () => {

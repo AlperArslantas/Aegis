@@ -33,7 +33,10 @@ target 'AegisApp' do
   # ⬇️ sadece ihtiyacimiz olan yetkileri etkinlestiriyoruz
   setup_permissions([
     'Microphone',
-    'Notifications'
+    'Notifications',
+    'Camera',
+    'Contacts',
+    'LocationWhenInUse'
   ])
 
   post_install do |installer|

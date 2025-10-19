@@ -34,7 +34,11 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>Konum tabanlı güvenlik senaryoları için gereklidir.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Görüntülü kapı önü iletişimi için kameraya erişim gerekiyor.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Acil durum kişilerinizle hızlıca iletişim kurmak için erişim gerekiyor.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Kapı önü konuşma özelliği için mikrofona erişim gerekiyor.</string>
 	<key>RCTNewArchEnabled</key>
