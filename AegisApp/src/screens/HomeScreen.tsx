@@ -9,14 +9,16 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  Platform,
 } from 'react-native';
+import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { Typography, Spacing } from '../constants/theme';
 import { useTheme } from '../utils/themeContext';
 import { SensorData, VideoStream as VideoStreamType, DoorCall } from '../types';
 import { getMockSensorData, getMockVideoStream, getMockDoorCall } from '../utils/mockData';
 
 // Bileşenler
-import Header from '../components/Header';
+import Header from '../components/Header.tsx';
 import SensorPanel from '../components/SensorPanel';
 import VideoStream from '../components/VideoStream';
 import ActionButtons from '../components/ActionButtons';
@@ -52,6 +54,32 @@ const HomeScreen: React.FC = () => {
     }, 5000); // 5 saniyede bir güncelle
 
     return () => clearInterval(interval);
+  }, []);
+
+  // Uygulama açılışında Mikrofon iznini iste
+  useEffect(() => {
+    const ensureMicrophonePermission = async () => {
+      try {
+        const permission = Platform.select({
+          ios: PERMISSIONS.IOS.MICROPHONE,
+          android: PERMISSIONS.ANDROID.RECORD_AUDIO,
+          default: undefined,
+        });
+
+        if (!permission) return;
+
+        const current = await check(permission);
+        if (current === RESULTS.GRANTED) {
+          return;
+        }
+
+        await request(permission);
+      } catch (e) {
+        // sessizce geç
+      }
+    };
+
+    ensureMicrophonePermission();
   }, []);
 
   // Event handlers
@@ -92,7 +120,7 @@ const HomeScreen: React.FC = () => {
     }
   };
 
-  const handleTabPress = (tab: 'home' | 'history' | 'settings') => {
+  const handleTabPress = (tab: 'home' | 'history' | 'settings' | 'profile') => {
     setCurrentTab(tab);
     console.log('Tab pressed:', tab);
   };

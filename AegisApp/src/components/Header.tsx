@@ -19,7 +19,7 @@ interface HeaderProps {
   onNotificationPress: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuPress, onNotificationPress }) => {
+export default function Header({ onMenuPress, onNotificationPress }: HeaderProps) {
   const { theme } = useTheme();
   
   return (
@@ -52,7 +52,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuPress, onNotificationPress }) => 
       </View>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -132,4 +132,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Header;
+// keep default export above
