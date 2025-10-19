@@ -39,7 +39,6 @@ export interface NavigationTab {
 export interface LoginCredentials {
   emailOrUsername: string;
   password: string;
-  deviceNumber: string;
 }
 
 export interface User {

@@ -95,21 +95,20 @@ export const mockUsers: User[] = [
 ];
 
 // Mock authentication fonksiyonları
-export const mockLogin = async (emailOrUsername: string, password: string, deviceNumber: string): Promise<{ success: boolean; user?: User; error?: string }> => {
+export const mockLogin = async (emailOrUsername: string, password: string, deviceNumber?: string): Promise<{ success: boolean; user?: User; error?: string }> => {
   // Simüle edilmiş network delay
   await new Promise<void>(resolve => setTimeout(() => resolve(), 1000));
   
-  // Mock validation
+  // Mock validation - cihaz numarası artık gerekli değil
   const user = mockUsers.find(u => 
     (u.email === emailOrUsername || u.username === emailOrUsername) &&
-    u.deviceNumber === deviceNumber &&
     password === 'password123' // Tüm mock kullanıcılar aynı şifreyi kullanıyor
   );
   
   if (user) {
     return { success: true, user };
   } else {
-    return { success: false, error: 'Geçersiz kullanıcı adı, şifre veya cihaz numarası' };
+    return { success: false, error: 'Geçersiz kullanıcı adı veya şifre' };
   }
 };
 

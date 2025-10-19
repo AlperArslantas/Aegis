@@ -50,7 +50,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [credentials, setCredentials] = useState<LoginCredentials>({
     emailOrUsername: '',
     password: '',
-    deviceNumber: '', // Kullanılmayacak ama tip uyumluluğu için
   });
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -275,8 +274,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     try {
       const result = await mockLogin(
         credentials.emailOrUsername,
-        credentials.password,
-        '' // Cihaz numarası artık gerekli değil
+        credentials.password
       );
 
       if (result.success && result.user) {
