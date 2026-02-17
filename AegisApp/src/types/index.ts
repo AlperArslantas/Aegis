@@ -6,9 +6,17 @@ export interface SensorData {
   temperature: number;
   humidity: number;
   airQuality: AirQualityStatus;
+  fireDetected?: boolean;
+  motionDetected?: boolean;
 }
 
 export type AirQualityStatus = 'excellent' | 'good' | 'moderate' | 'poor' | 'hazardous';
+
+// Kapı durumu
+export interface DoorStatus {
+  isLocked: boolean;
+  isRinging: boolean;
+}
 
 export interface VideoStream {
   isLive: boolean;

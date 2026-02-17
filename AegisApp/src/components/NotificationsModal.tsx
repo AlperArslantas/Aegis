@@ -3,7 +3,7 @@
  * Sağ üst bildirim ikonundan açılan modal
  */
 
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,31 +11,161 @@ import {
   StyleSheet,
   Animated,
   ScrollView,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
 import { useTheme } from '../utils/themeContext';
+import apiService from '../utils/apiService';
 
 interface Notification {
   id: string;
   title: string;
   message: string;
   time: string;
-  type: 'door' | 'sensor' | 'system' | 'alert';
+  type: 'door' | 'sensor' | 'system' | 'alert' | 'fire';
   isRead: boolean;
+  rawData?: any; // Orijinal backend verisi (yangın tespiti veya acil durum)
+  notificationType?: 'yangin' | 'acil'; // Bildirim tipi
 }
 
 interface NotificationsModalProps {
   isVisible: boolean;
   onClose: () => void;
+  onNotificationPress?: (notificationId: string, notificationType: 'yangin' | 'acil', notificationData: any) => void;
+  onUnreadCountChange?: (count: number) => void; // Görülmemiş bildirim sayısı değiştiğinde çağrılır
 }
 
 const NotificationsModal: React.FC<NotificationsModalProps> = ({
   isVisible,
   onClose,
+  onNotificationPress,
+  onUnreadCountChange,
 }) => {
   const { theme } = useTheme();
   const translateY = new Animated.Value(isVisible ? 0 : -300);
   const opacity = new Animated.Value(isVisible ? 1 : 0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Backend'den bildirimleri çek
+  const fetchNotifications = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      // Birleşik olaylar tablosundan tüm kayıtları çek
+      const olaylar = await apiService.getOlaylar(40);
+
+      // Tüm olayları Notification formatına dönüştür
+      const notificationList: Notification[] = [];
+
+      // Olayları ekle
+      olaylar.forEach((olay: any) => {
+        const date = new Date(olay.olusturulma_tarihi);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        let timeStr = '';
+        if (diffMins < 1) {
+          timeStr = 'Az önce';
+        } else if (diffMins < 60) {
+          timeStr = `${diffMins} dakika önce`;
+        } else if (diffHours < 24) {
+          timeStr = `${diffHours} saat önce`;
+        } else if (diffDays === 1) {
+          timeStr = 'Dün';
+        } else if (diffDays < 7) {
+          timeStr = `${diffDays} gün önce`;
+        } else {
+          timeStr = date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+        }
+
+        // Tip'e göre notification type belirle
+        let notificationType: 'yangin' | 'acil' = 'acil';
+        let notifType: 'fire' | 'sensor' | 'door' | 'motion' | 'system' | 'alert' = 'alert';
+        let title = '';
+        
+        if (olay.tip === 'YANGIN_TESPITI') {
+          notificationType = 'yangin';
+          notifType = 'fire';
+          title = olay.yangin_tespit_edildi ? '🔥 Yangın Tespit Edildi!' : 'Yangın Tespiti (Negatif)';
+        } else if (olay.tip === 'YUKSEK_SICAKLIK') {
+          notifType = 'sensor';
+          title = '🌡️ Yüksek Sıcaklık Uyarısı';
+        } else if (olay.tip === 'GAZ_KACAGI') {
+          notifType = 'alert';
+          title = '⚠️ Gaz Kaçağı Tespiti';
+        } else {
+          notifType = 'alert';
+          title = olay.tip || 'Acil Durum';
+        }
+
+        notificationList.push({
+          id: `${notificationType}-${olay.id}`,
+          title,
+          message: olay.aciklama || (olay.tip === 'YANGIN_TESPITI' && olay.guven_seviyesi ? `Güven seviyesi: ${(parseFloat(olay.guven_seviyesi) * 100).toFixed(2)}%` : ''),
+          time: timeStr,
+          type: notifType,
+          isRead: false,
+          rawData: olay,
+          notificationType,
+        });
+      });
+
+      // Tarihe göre sırala (en yeni önce)
+      notificationList.sort((a, b) => {
+        // Basit sıralama - time string'ine göre değil, kayıt ID'sine göre (en yeni önce)
+        return parseInt(b.id.split('-')[1]) - parseInt(a.id.split('-')[1]);
+      });
+
+      const finalNotifications = notificationList.slice(0, 20); // En son 20 bildirimi göster
+      setNotifications(finalNotifications);
+      
+      // Görülmemiş bildirim sayısını hesapla ve parent'a bildir (modal açık değilse)
+      if (!isVisible && onUnreadCountChange) {
+        const unreadCount = finalNotifications.filter(n => !n.isRead).length;
+        onUnreadCountChange(unreadCount);
+      }
+    } catch (error) {
+      console.error('Bildirimler getirilemedi:', error);
+      setNotifications([]);
+      if (onUnreadCountChange) {
+        onUnreadCountChange(0);
+      }
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [onUnreadCountChange]);
+
+  // Modal açıldığında bildirimleri çek
+  useEffect(() => {
+    if (isVisible) {
+      fetchNotifications();
+    }
+  }, [isVisible, fetchNotifications]);
+
+  // Modal açıldığında tüm bildirimleri görüldü olarak işaretle
+  useEffect(() => {
+    if (isVisible && onUnreadCountChange) {
+      // Modal açıldığında tüm bildirimleri görüldü say
+      onUnreadCountChange(0);
+      // Mevcut bildirimleri de görüldü olarak işaretle
+      setNotifications(prevNotifications => 
+        prevNotifications.map(n => ({ ...n, isRead: true }))
+      );
+    }
+  }, [isVisible, onUnreadCountChange]);
+
+  // Pull to refresh
+  const onRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   React.useEffect(() => {
     Animated.parallel([
@@ -52,42 +182,6 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
     ]).start();
   }, [isVisible]);
 
-  // Mock bildirimler
-  const notifications: Notification[] = [
-    {
-      id: '1',
-      title: 'Kapı Çağrısı',
-      message: 'Ön kapıdan gelen çağrı',
-      time: '2 dakika önce',
-      type: 'door',
-      isRead: false,
-    },
-    {
-      id: '2',
-      title: 'Sıcaklık Uyarısı',
-      message: 'Sıcaklık 30°C üzerine çıktı',
-      time: '15 dakika önce',
-      type: 'sensor',
-      isRead: true,
-    },
-    {
-      id: '3',
-      title: 'Sistem Güncellemesi',
-      message: 'Yeni güvenlik güncellemesi mevcut',
-      time: '1 saat önce',
-      type: 'system',
-      isRead: true,
-    },
-    {
-      id: '4',
-      title: 'Güvenlik Uyarısı',
-      message: 'Gece saatlerinde hareket tespit edildi',
-      time: '2 saat önce',
-      type: 'alert',
-      isRead: false,
-    },
-  ];
-
   const getNotificationIcon = (type: string): string => {
     switch (type) {
       case 'door':
@@ -98,6 +192,8 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
         return '⚙️';
       case 'alert':
         return '🚨';
+      case 'fire':
+        return '🔥';
       default:
         return '📢';
     }
@@ -151,17 +247,57 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
         </View>
 
         {/* Notifications List */}
-        <ScrollView style={styles.notificationsList} showsVerticalScrollIndicator={false}>
-          {notifications.map((notification) => (
-            <View
+        <ScrollView 
+          style={styles.notificationsList} 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              colors={[theme.colors.primary]}
+              tintColor={theme.colors.primary}
+            />
+          }
+        >
+          {isLoading && notifications.length === 0 ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={theme.colors.primary} />
+              <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+                Bildirimler yükleniyor...
+              </Text>
+            </View>
+          ) : notifications.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+                Bildirim bulunamadı
+              </Text>
+            </View>
+          ) : (
+            notifications.map((notification) => (
+            <TouchableOpacity
               key={notification.id}
               style={[
                 styles.notificationItem,
                 { borderBottomColor: theme.colors.secondary },
                 !notification.isRead && styles.unreadNotification,
               ]}
+              onPress={() => {
+                console.log('🔔 Bildirim tıklandı:', notification.id, notification.notificationType, notification.rawData ? 'Veri var' : 'Veri yok');
+                if (onNotificationPress && notification.rawData && notification.notificationType) {
+                  console.log('✅ onNotificationPress çağrılıyor...');
+                  onNotificationPress(notification.id, notification.notificationType, notification.rawData);
+                  onClose();
+                } else {
+                  console.log('⚠️ onNotificationPress eksik veya veri eksik:', {
+                    hasOnNotificationPress: !!onNotificationPress,
+                    hasRawData: !!notification.rawData,
+                    hasNotificationType: !!notification.notificationType
+                  });
+                }
+              }}
+              activeOpacity={0.7}
             >
-              <View style={[styles.notificationIcon, { backgroundColor: theme.colors.secondary }]}>
+              <View style={[styles.notificationIcon, { backgroundColor: getNotificationColor(notification.type) }]}>
                 <Text style={styles.iconText}>
                   {getNotificationIcon(notification.type)}
                 </Text>
@@ -179,8 +315,9 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
                   ]}
                 />
               )}
-            </View>
-          ))}
+            </TouchableOpacity>
+            ))
+          )}
         </ScrollView>
 
         {/* Footer */}
@@ -296,6 +433,23 @@ const styles = StyleSheet.create({
   clearAllText: {
     fontSize: Typography.sm,
     fontWeight: Typography.medium,
+  },
+  loadingContainer: {
+    padding: Spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: Spacing.md,
+    fontSize: Typography.sm,
+  },
+  emptyContainer: {
+    padding: Spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: Typography.sm,
   },
 });
 

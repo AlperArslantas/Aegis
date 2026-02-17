@@ -13,6 +13,63 @@ export class SensorService {
     private unitOfWorkFactory: any
   ) {}
 
+    /**
+   * Raspberry Pi'den gelen gerçek sensör verilerini kaydet
+   */
+  async saveSensorDataFromPi(data: {
+    sicaklik: number;
+    gaz: number;
+    hareket: boolean;
+    kapiAcik?: boolean;
+  }): Promise<SensorData> {
+    const unitOfWork = await this.unitOfWorkFactory.create();
+    try {
+      await unitOfWork.beginTransaction();
+
+      // Gaz değerine göre hava kalitesi belirle
+      let airQuality: 'excellent' | 'good' | 'moderate' | 'poor' | 'hazardous' = 'good';
+      if (data.gaz < 100) airQuality = 'excellent';
+      else if (data.gaz < 300) airQuality = 'good';
+      else if (data.gaz < 500) airQuality = 'moderate';
+      else if (data.gaz < 1000) airQuality = 'poor';
+      else airQuality = 'hazardous';
+
+      // Gaz değerine göre yangın tespiti (gaz > 800 ise yangın şüphesi)
+      const fireDetected = data.gaz > 800;
+
+      // Sensör verisini oluştur
+      const sensorData: Omit<SensorData, 'id'> = {
+        temperature: data.sicaklik,
+        humidity: 0, // Nem sensörü yoksa 0
+        airQuality: airQuality,
+        fireDetected: fireDetected,
+        motionDetected: data.hareket,
+        timestamp: new Date(),
+        sensorType: 'temperature'
+      };
+
+      // Veritabanına kaydet
+      const savedData = await unitOfWork.sensorDataRepository.create(sensorData);
+
+      await unitOfWork.commit();
+
+      // Yangın tespit edildiyse alarm tetikle
+      if (fireDetected) {
+        await this.triggerFireAlarm(savedData);
+      }
+
+      // Hareket tespit edildiyse bildirim gönder
+      if (data.hareket) {
+        await this.triggerMotionAlert(savedData);
+      }
+
+      return savedData;
+    } catch (error) {
+      await unitOfWork.rollback();
+      throw error;
+    }
+  }
+
   /**
    * Güncel sensör verilerini oku ve kaydet
    */

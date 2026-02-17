@@ -66,7 +66,7 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
   };
 
   return (
-    <TouchableOpacity style={[styles.historyItem, { backgroundColor: theme.colors.surface }]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[styles.historyItem, { backgroundColor: theme.colors.surface, borderColor: theme.colors.secondary }]} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.itemContent}>
         <View style={styles.itemHeader}>
           <View style={[styles.iconContainer, { backgroundColor: theme.colors.orange }]}>
@@ -81,7 +81,16 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
         </View>
         {imageUrl && (
           <View style={styles.imageContainer}>
-            <Image source={{ uri: imageUrl }} style={styles.thumbnail} />
+            <Image 
+              source={{ uri: imageUrl }} 
+              style={styles.thumbnail}
+              onError={(error) => {
+                console.error(`❌ Fotoğraf yüklenemedi: ${imageUrl}`, error.nativeEvent.error);
+              }}
+              onLoad={() => {
+                console.log(`✅ Fotoğraf yüklendi: ${imageUrl}`);
+              }}
+            />
           </View>
         )}
       </View>
@@ -175,7 +184,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 const styles = StyleSheet.create({
   historyItem: {
     marginHorizontal: Spacing.md,
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.md,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
     ...Shadows.sm,

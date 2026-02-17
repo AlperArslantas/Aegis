@@ -12,7 +12,6 @@ import {
 import { Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
 import { useTheme } from '../utils/themeContext';
 import { SensorData } from '../types';
-import { getAirQualityColor, getAirQualityText } from '../utils/mockData';
 
 interface SensorPanelProps {
   sensorData: SensorData;
@@ -20,8 +19,11 @@ interface SensorPanelProps {
 
 const SensorPanel: React.FC<SensorPanelProps> = ({ sensorData }) => {
   const { theme } = useTheme();
-  const airQualityColor = getAirQualityColor(sensorData.airQuality);
-  const airQualityText = getAirQualityText(sensorData.airQuality);
+  
+  // Gaz kaçağı kontrolü: airQuality 'good' ise gaz yok, diğer durumlar gaz var demektir
+  const hasGasLeak = sensorData.airQuality !== 'good' && sensorData.airQuality !== 'excellent';
+  const gasLeakColor = hasGasLeak ? theme.colors.danger : theme.colors.success;
+  const gasLeakText = hasGasLeak ? 'Uyarı!' : 'Gaz Kaçağı Tespiti Yok';
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
@@ -50,15 +52,15 @@ const SensorPanel: React.FC<SensorPanelProps> = ({ sensorData }) => {
           </View>
         </View>
 
-        {/* Hava Kalitesi Sensörü */}
+        {/* Gaz Kaçağı Sensörü */}
         <View style={styles.sensorItem}>
-          <View style={[styles.sensorIcon, { backgroundColor: airQualityColor }]}>
+          <View style={[styles.sensorIcon, { backgroundColor: gasLeakColor }]}>
             <Text style={styles.airQualityIcon}>🌿</Text>
           </View>
           <View style={styles.sensorInfo}>
-            <Text style={[styles.sensorLabel, { color: theme.colors.textSecondary }]}>HAVA KALİTESİ</Text>
-            <Text style={[styles.sensorValue, { color: airQualityColor }]}>
-              {airQualityText}
+            <Text style={[styles.sensorLabel, { color: theme.colors.textSecondary }]}>GAZ KAÇAĞI</Text>
+            <Text style={[styles.sensorValue, { color: gasLeakColor }]}>
+              {gasLeakText}
             </Text>
           </View>
         </View>

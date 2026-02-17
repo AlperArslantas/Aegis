@@ -27,7 +27,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      {/* SPEAK Butonu */}
+      {/* SPEAK Butonu - Full-Duplex (Hem konuş hem dinle) - Aç/Kapat modu */}
       <TouchableOpacity
         style={[
           styles.button,
@@ -38,9 +38,13 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         activeOpacity={0.8}
       >
         <View style={styles.buttonIcon}>
-          <Text style={styles.microphoneIcon}>🎤</Text>
+          <Text style={styles.microphoneIcon}>
+            {isMicrophoneActive ? '🎙️' : '🎤'}
+          </Text>
         </View>
-        <Text style={styles.buttonText}>SPEAK</Text>
+        <Text style={styles.buttonText}>
+          {isMicrophoneActive ? 'DURDUR' : 'KONUŞ'}
+        </Text>
       </TouchableOpacity>
 
       {/* UNLOCK DOOR Butonu */}
@@ -59,7 +63,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           </Text>
         </View>
         <Text style={styles.buttonText}>
-          {isDoorUnlocked ? 'LOCK DOOR' : 'UNLOCK DOOR'}
+          {isDoorUnlocked ? 'KAPİYİ KİLİTLE' : 'KAPİYİ AÇ'}
         </Text>
       </TouchableOpacity>
     </View>

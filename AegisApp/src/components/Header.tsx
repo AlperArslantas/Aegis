@@ -17,9 +17,10 @@ import { useTheme } from '../utils/themeContext';
 interface HeaderProps {
   onMenuPress: () => void;
   onNotificationPress: () => void;
+  hasUnreadNotifications?: boolean; // Görülmemiş bildirim var mı?
 }
 
-export default function Header({ onMenuPress, onNotificationPress }: HeaderProps) {
+export default function Header({ onMenuPress, onNotificationPress, hasUnreadNotifications = false }: HeaderProps) {
   const { theme } = useTheme();
   
   return (
@@ -45,7 +46,9 @@ export default function Header({ onMenuPress, onNotificationPress }: HeaderProps
         {/* Sağ bildirim butonu */}
         <TouchableOpacity style={styles.notificationButton} onPress={onNotificationPress}>
           <View style={styles.notificationIcon}>
-            <View style={[styles.notificationDot, { backgroundColor: theme.colors.danger }]} />
+            {hasUnreadNotifications && (
+              <View style={[styles.notificationDot, { backgroundColor: theme.colors.danger }]} />
+            )}
             <View style={[styles.notificationBell, { borderColor: theme.colors.text }]} />
           </View>
         </TouchableOpacity>

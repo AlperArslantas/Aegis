@@ -6,6 +6,7 @@
 import { Request, Response } from 'express';
 import { DoorService } from '../services/DoorService';
 import { container, SERVICE_IDENTIFIERS } from '../infrastructure/Container';
+import { getSocketInstance } from '../utils/socketInstance';
 
 export class DoorController {
   private doorService: DoorService;
@@ -73,6 +74,15 @@ export class DoorController {
       const userId = req.body.userId || (req as any).user?.id;
       await this.doorService.unlockDoor(userId);
       
+      // Socket.IO ile Raspberry Pi'ye kapı açma komutu gönder
+      const io = getSocketInstance();
+      if (io) {
+        io.to('pi-cihazlari').emit('kapi-komut', true);
+        console.log('✅ Kapı açma komutu gönderildi (Socket.IO: pi-cihazlari -> kapi-komut: true)');
+      } else {
+        console.warn('⚠️ Socket.IO instance bulunamadı, kapı komutu gönderilemedi');
+      }
+      
       res.json({
         success: true,
         message: 'Door unlocked successfully'
@@ -95,6 +105,15 @@ export class DoorController {
     try {
       const userId = req.body.userId || (req as any).user?.id;
       await this.doorService.lockDoor(userId);
+      
+      // Socket.IO ile Raspberry Pi'ye kapı kilitleme komutu gönder
+      const io = getSocketInstance();
+      if (io) {
+        io.to('pi-cihazlari').emit('kapi-komut', false);
+        console.log('✅ Kapı kilitleme komutu gönderildi (Socket.IO: pi-cihazlari -> kapi-komut: false)');
+      } else {
+        console.warn('⚠️ Socket.IO instance bulunamadı, kapı komutu gönderilemedi');
+      }
       
       res.json({
         success: true,
